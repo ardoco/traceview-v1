@@ -34,22 +34,21 @@ export class SplitVisualization {
         const rv = this.rightVisualization;
         let leftToRightListener : HighlightingListener = new class implements HighlightingListener {
             wasHighlighted(id: string): void {
-                traceLinks.filter((link) => link.source == id).forEach((link) => rv.highlight(link.target));
+                traceLinks.filter((link) => link.source == id).forEach((link) => rv.setHighlighted(link.target,true,0));
             }
             wasUnhighlighted(id: string): void {
-                traceLinks.filter((link) => link.source == id).forEach((link) => rv.unhighlight(link.target));
+                traceLinks.filter((link) => link.source == id).forEach((link) => rv.setHighlighted(link.target, false,0));
             }
         }
         let rightToLeftListener : HighlightingListener = new class implements HighlightingListener {
             wasHighlighted(id: string): void {
                 const leftIds : string[] = traceLinks.filter((link) => link.target == id).map((link) => link.source);
-                leftIds.forEach((leftId) => lv.setHighlighted(leftId, true));
+                leftIds.forEach((leftId) => lv.setHighlighted(leftId, true, 0));
 
             }
             wasUnhighlighted(id: string): void {
-                //traceLinks.filter((link) => link.target == id).forEach((link) => lv.unhighlight(link.source));
                 const leftIds : string[] = traceLinks.filter((link) => link.target == id).map((link) => link.source);
-                leftIds.forEach((leftId) => lv.setHighlighted(leftId, false));
+                leftIds.forEach((leftId) => lv.setHighlighted(leftId, false, 0));
             }
         }
         this.leftVisualization.addHighlightingListener(leftToRightListener);

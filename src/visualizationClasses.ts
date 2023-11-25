@@ -9,11 +9,6 @@ export interface HighlightingSubject {
     addHighlightingListener(listener : HighlightingListener) : void;
 }
 
-export interface Visualization extends HighlightingSubject {
-    highlight(id : string) : void;
-    unhighlight(id : string) : void;
-}
-
 export abstract class HighlightingVisualization<T extends IIdentifiable> implements HighlightingSubject {
 
     protected visualizedArtifacts : Map<string,T>;
@@ -34,18 +29,19 @@ export abstract class HighlightingVisualization<T extends IIdentifiable> impleme
         }
     }
 
-    abstract highlight(id: string): void;
-    abstract unhighlight(id: string): void;
+    abstract highlight(id: string, tier : number): void;
+    abstract unhighlight(id: string, tier : number): void;
 
-    setHighlighted(id : string, highlighted : boolean) : void {
+    setHighlighted(id : string, highlighted : boolean, tier : number) : void {
         if (this.highlightableIds.indexOf(id) != -1) {
             const numPreviousReferences = this.externalReferencesForcingHighlight.get(id)!;
             this.externalReferencesForcingHighlight.set(id, numPreviousReferences + (highlighted ? 1 : -1));
+            console.log(id.substring(0,3) + " " + numPreviousReferences + " -> " + this.externalReferencesForcingHighlight.get(id));
             if (this.externalReferencesForcingHighlight.get(id)! > 0) {
-                this.highlight(id);
+                this.highlight(id, tier);
                 this.currentlyHighlighted.set(id, true);
             } else {
-                this.unhighlight(id);
+                this.unhighlight(id, tier);
                 this.currentlyHighlighted.set(id, false);
             }
         }
@@ -59,13 +55,14 @@ export abstract class HighlightingVisualization<T extends IIdentifiable> impleme
         if (this.highlightableIds.indexOf(id) != -1) {
             if (this.currentlyHighlighted.has(id) && this.currentlyHighlighted.get(id)) {
                 this.currentlyHighlighted.set(id, false);
-                this.unhighlight(id);
+                this.externalReferencesForcingHighlight.set(id, 0);
+                this.unhighlight(id, 0);
                 for (let listener of this.highlightingListeners) {
                     listener.wasUnhighlighted(id);
                 }
             } else {
                 this.currentlyHighlighted.set(id, true);
-                this.highlight(id);
+                this.highlight(id, 0);
                 for (let listener of this.highlightingListeners) {
                     listener.wasHighlighted(id);
                 }

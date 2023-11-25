@@ -2,7 +2,7 @@ import * as d3 from 'd3';
 
 import { UMLBase, UMLComponent } from './classes';
 import { Random, getTextWidth } from './utils';
-import {HighlightingListener, HighlightingVisualization, Visualization} from './visualizationClasses';
+import {HighlightingListener, HighlightingSubject, HighlightingVisualization} from './visualizationClasses';
 
 class UMLNode {
     x: number;
@@ -34,7 +34,7 @@ class Edge {
     }
 }
 
-export class UMLHighlightingVisualization extends HighlightingVisualization<UMLBase> implements Visualization {
+export class UMLHighlightingVisualization extends HighlightingVisualization<UMLBase> implements HighlightingSubject {
 
     protected rootUMLElements : UMLBase[];
     protected plot : d3.Selection<SVGSVGElement, unknown, HTMLElement, any>;
@@ -57,7 +57,7 @@ export class UMLHighlightingVisualization extends HighlightingVisualization<UMLB
         this.toggleHighlight(id);
     }
 
-    highlight(id: string): void {
+    highlight(id: string, tier : 0): void {
         this.plot.selectAll<SVGRectElement, UMLNode>("rect")
         .filter((d) => d.identifier == id)
         .attr("stroke", "red");
@@ -66,7 +66,7 @@ export class UMLHighlightingVisualization extends HighlightingVisualization<UMLB
         .attr("stroke", "red")
         .attr("fill", "red");
     }
-    unhighlight(id: string): void {
+    unhighlight(id: string, tier : 0): void {
         this.plot.selectAll<SVGRectElement, UMLNode>("rect")
         .filter((d) => d.identifier == id)
         .attr("stroke", "black");

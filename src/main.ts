@@ -30,10 +30,6 @@ async function init() {
     return new TraceabilityLink(link.target, link.source);
   });
   let umlObjects = parseUML(umlData);
-  console.log("UML Objects: " + umlObjects.length);
-  for (let umlObject of umlObjects) {
-    console.log(umlObject.getIdentifier());
-  }
   const colors = new Map<string,string>();
   if (middle) {
     let totalVis : SplitVisualization = new SplitVisualization(middle,sentences,umlObjects,traceLinks);
