@@ -1,5 +1,3 @@
-console.log('utils.ts');
-
 export function loadAndPrintUML(umlFileUrl: string): Promise<void> {
     return fetch(umlFileUrl)
         .then(umlFile => umlFile.text())
@@ -13,6 +11,15 @@ export function getTextWidth(text: string, fontSize: number): number {
     context.font = fontSize + "px 'Roboto Mono', monospace";
     const width = context.measureText(text).width;
     return width;
+}
+
+export function generateRandomRGB() {
+  const minBrightness = 128; // Adjust this value to set the minimum brightness
+  let rgb = [0, 0, 0];
+  do {
+    rgb = [Math.random(), Math.random(), Math.random()].map(value => Math.floor(value * 255));
+  } while (rgb.reduce((acc, val) => acc + val, 0) < minBrightness * 3);
+  return "rgb(" + rgb[0] +"," + rgb[1] + "," + rgb[2] + ")";
 }
 
 export class Random {

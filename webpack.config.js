@@ -5,18 +5,16 @@ module.exports = {
   entry: {
     bundle: [
       './src/classes.ts',
-      './src/visualizationClasses.ts',
-      './src/utils.ts',
+      './src/uml.ts',
       './src/highlightingVisualization.ts',
+      './src/utils.ts',
+      './src/natLangHighlightingVis.ts',
       './src/parse.ts',
+      './src/ui.ts',
       './src/main.ts',
       './src/umlHighlightingVisualization.ts',
       './src/splitVisualization.ts'
     ]
-  },
-  output: {
-    filename: 'bundle.js',
-    path: path.resolve(__dirname, 'dist'),
   },
   resolve: {
     extensions: ['.ts', '.js'],

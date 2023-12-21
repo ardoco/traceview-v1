@@ -1,73 +1,77 @@
-import {NLSentence } from './classes';
-import {HighlightingListener, HighlightingVisualization, Visualization} from './visualizationClasses';
+import { IIdentifiable } from "./classes";
 
-export class NLHighlightingVisualization extends HighlightingVisualization<NLSentence> implements Visualization {
+export interface HighlightingListener {
+    wasHighlighted(id : string) : void;
+    wasUnhighlighted(id : string) : void;
+}
 
-    protected visualizedArtifacts : Map<string,NLSentence>;
-    protected viewportDiv : HTMLElement;
-    protected artifactVisualizations : Map<string,HTMLElement>;
-    protected artifactColors : Map<string,string>;
+export interface HighlightingSubject {
+    addHighlightingListener(listener : HighlightingListener) : void;
+}
+
+export abstract class HighlightingVisualization<T extends IIdentifiable> implements HighlightingSubject {
+
+    protected visualizedArtifacts : Map<string,T>;
     protected highlightingListeners : HighlightingListener[];
+    protected highlightableIds : string[];
+    protected currentlyHighlighted : Map<string,boolean>;
+    protected externalReferencesForcingHighlight : Map<string,number>;
 
-    constructor(viewport : HTMLElement, sentences : NLSentence[], highlightableIds : string[], artifactColors : Map<string,string>) {
-        super(highlightableIds);
-        this.visualizedArtifacts = new Map<string,NLSentence>();
-        this.artifactVisualizations = new Map<string,HTMLElement>();
-        for (let artifact of sentences) {
-            this.visualizedArtifacts.set(artifact.getIdentifier(), artifact);
-        } 
-        this.artifactColors = artifactColors;
-        this.viewportDiv = viewport;
+    constructor(highlightableIds : string[]) {
+        this.visualizedArtifacts = new Map<string,T>();
         this.highlightingListeners = [];
-        this.init(viewport);
-    }
-    
-    highlight(id: string): void {
-        if (this.artifactVisualizations.has(id)) {
-            this.artifactVisualizations.get(id)!.style.color = "red";
-        }
-    }
-    unhighlight(id: string): void {
-        if (this.artifactVisualizations.has(id)) {
-            this.artifactVisualizations.get(id)!.style.color = "black";
+        this.highlightableIds = highlightableIds;
+        this.currentlyHighlighted = new Map<string,boolean>();
+        this.externalReferencesForcingHighlight = new Map<string,number>();
+        for (let id of highlightableIds) {
+            this.currentlyHighlighted.set(id, false);
+            this.externalReferencesForcingHighlight.set(id, 0);
         }
     }
 
-    public init(viewportDiv : HTMLElement) : void {
-        this.viewportDiv = viewportDiv;
-        this.viewportDiv.style.overflow = "auto";
-        const numberOfSentences = this.visualizedArtifacts.size;
-        let i : number  = 0;
-        for (let artifact of this.visualizedArtifacts.values()) {
-            let artifactDiv = document.createElement('div');
-            artifactDiv.setAttribute('id', artifact.getIdentifier());
-            artifactDiv.classList.add('sentence-item');
-            if (this.highlightableIds.indexOf(artifact.getIdentifier()) != -1) {
-                artifactDiv.style.cursor = "pointer";
-                artifactDiv.addEventListener('mouseover', () => artifactDiv.style.backgroundColor = "lightgrey");
-                artifactDiv.addEventListener('mouseout', () => artifactDiv.style.backgroundColor = "white");
+    abstract highlight(id: string, color : string): void;
+    abstract unhighlight(id: string): void;
+
+    unhighlightAll() : void {
+        for (let id of this.highlightableIds) {
+            this.unhighlight(id);
+        }
+    }
+
+    setHighlighted(id : string, highlighted : boolean, color : string) : void {
+        if (this.highlightableIds.indexOf(id) != -1) {
+            const numPreviousReferences = this.externalReferencesForcingHighlight.get(id)!;
+            this.externalReferencesForcingHighlight.set(id, numPreviousReferences + (highlighted ? 1 : -1));
+            if (this.externalReferencesForcingHighlight.get(id)! > 0) {
+                this.highlight(id, color);
+                this.currentlyHighlighted.set(id, true);
             } else {
-                artifactDiv.style.color = "rgb(110,110,110)";
+                this.unhighlight(id);
+                this.currentlyHighlighted.set(id, false);
             }
-            artifactDiv.innerHTML = artifact.getContent();
-            this.viewportDiv.appendChild(artifactDiv);
-            this.artifactVisualizations.set(artifact.getIdentifier(), artifactDiv);
-            this.currentlyHighlighted.set(artifact.getIdentifier(), false);
-            artifactDiv.addEventListener('click', () => {
-                this.userClickedOnSentence(artifact.getIdentifier());
-            });
-            if (i == 0) {
-                artifactDiv.style.marginTop = "60px";
-                artifactDiv.style.borderTop = "0px";
-            }
-            if (i == numberOfSentences - 1) {
-                artifactDiv.style.marginBottom = "60px";
-            }
-            i++;
         }
     }
 
-    public userClickedOnSentence(id : string) {
-        this.toggleHighlight(id);
+    addHighlightingListener(listener: HighlightingListener): void {
+        this.highlightingListeners.push(listener);
+    }
+
+    toggleHighlight(id : string, color : string) : void {
+        if (this.highlightableIds.indexOf(id) != -1) {
+            if (this.currentlyHighlighted.has(id) && this.currentlyHighlighted.get(id)) {
+                this.currentlyHighlighted.set(id, false);
+                this.externalReferencesForcingHighlight.set(id, 0);
+                this.unhighlight(id);
+                for (let listener of this.highlightingListeners) {
+                    listener.wasUnhighlighted(id);
+                }
+            } else {
+                this.currentlyHighlighted.set(id, true);
+                this.highlight(id, color);
+                for (let listener of this.highlightingListeners) {
+                    listener.wasHighlighted(id);
+                }
+            }
+        }
     }
 }

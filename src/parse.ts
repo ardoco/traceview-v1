@@ -1,5 +1,6 @@
 
-import { TraceabilityLink,NLSentence, UMLComponent,UMLInterface,UMLInterfaceRealization,UMLOperation, UMLBase, UMLUsage } from "./classes";
+import { TraceabilityLink,NLSentence} from "./classes";
+import { UMLComponent,UMLInterface,UMLInterfaceRealization,UMLOperation, UMLBase, UMLUsage } from "./uml";
 
 export function parseTraceLinksFromCSV(content : string) : TraceabilityLink[] {
     let links : TraceabilityLink[] = [];
@@ -122,9 +123,6 @@ export function parseUML(content : string) : UMLBase[] {
     let contentWithoutFirstAndlastLine = content.substring(content.indexOf("<p"), content.lastIndexOf("</"));
     let cleanContent = contentWithoutFirstAndlastLine.replace(/\n/g, ' ');
     let tokens : Token[] = lex(cleanContent);
-    if (true) {
-        //return [];
-    }
     let umlObjects : UMLBase[] = [];
     let i = 0;
     while(i  < tokens.length) {
