@@ -1,76 +1,58 @@
 import { IIdentifiable } from "./classes";
+import { ColorSupplier } from "./colorSupplier";
 
 export interface HighlightingListener {
-    wasHighlighted(id : string) : void;
-    wasUnhighlighted(id : string) : void;
+    shouldBeHighlighted(id : string) : void;
+    shouldBeUnhighlighted(id : string) : void;
 }
 
 export interface HighlightingSubject {
     addHighlightingListener(listener : HighlightingListener) : void;
+    highlight(id : string, color : string) : void;
+    setUnhighlighted(id : string) : void;
 }
 
-export abstract class HighlightingVisualization<T extends IIdentifiable> implements HighlightingSubject {
+export abstract class HighlightingVisualization implements HighlightingSubject {
 
-    protected visualizedArtifacts : Map<string,T>;
-    protected highlightingListeners : HighlightingListener[];
-    protected highlightableIds : string[];
+    private highlightingListeners : HighlightingListener[];
     protected currentlyHighlighted : Map<string,boolean>;
-    protected externalReferencesForcingHighlight : Map<string,number>;
 
     constructor(highlightableIds : string[]) {
-        this.visualizedArtifacts = new Map<string,T>();
         this.highlightingListeners = [];
-        this.highlightableIds = highlightableIds;
-        this.currentlyHighlighted = new Map<string,boolean>();
-        this.externalReferencesForcingHighlight = new Map<string,number>();
-        for (let id of highlightableIds) {
-            this.currentlyHighlighted.set(id, false);
-            this.externalReferencesForcingHighlight.set(id, 0);
-        }
+        this.currentlyHighlighted = new Map<string,boolean>(highlightableIds.map((id) => [id,false]));
     }
 
-    abstract highlight(id: string, color : string): void;
-    abstract unhighlight(id: string): void;
+    protected abstract highlightElement(id: string, color : string): void;
+    protected abstract unhighlightElement(id: string): void;
 
     unhighlightAll() : void {
-        for (let id of this.highlightableIds) {
-            this.unhighlight(id);
+        for (let id of this.currentlyHighlighted.keys()) {
+            this.unhighlightElement(id);
         }
     }
 
-    setHighlighted(id : string, highlighted : boolean, color : string) : void {
-        if (this.highlightableIds.indexOf(id) != -1) {
-            const numPreviousReferences = this.externalReferencesForcingHighlight.get(id)!;
-            this.externalReferencesForcingHighlight.set(id, numPreviousReferences + (highlighted ? 1 : -1));
-            if (this.externalReferencesForcingHighlight.get(id)! > 0) {
-                this.highlight(id, color);
-                this.currentlyHighlighted.set(id, true);
-            } else {
-                this.unhighlight(id);
-                this.currentlyHighlighted.set(id, false);
-            }
-        }
+    public highlight(id: string, color : string): void {
+        this.highlightElement(id, color);
+        this.currentlyHighlighted.set(id, true);
     }
 
-    addHighlightingListener(listener: HighlightingListener): void {
+    public setUnhighlighted(id: string): void {
+        this.unhighlightElement(id);
+        this.currentlyHighlighted.set(id, false);
+    }
+
+    public addHighlightingListener(listener: HighlightingListener): void {
         this.highlightingListeners.push(listener);
     }
 
-    toggleHighlight(id : string, color : string) : void {
-        if (this.highlightableIds.indexOf(id) != -1) {
-            if (this.currentlyHighlighted.has(id) && this.currentlyHighlighted.get(id)) {
-                this.currentlyHighlighted.set(id, false);
-                this.externalReferencesForcingHighlight.set(id, 0);
-                this.unhighlight(id);
-                for (let listener of this.highlightingListeners) {
-                    listener.wasUnhighlighted(id);
-                }
-            } else {
-                this.currentlyHighlighted.set(id, true);
-                this.highlight(id, color);
-                for (let listener of this.highlightingListeners) {
-                    listener.wasHighlighted(id);
-                }
+    protected toggleHighlight(id : string) : void {
+        if (this.currentlyHighlighted.get(id)) {
+            for (let listener of this.highlightingListeners) {
+                listener.shouldBeUnhighlighted(id);
+            }
+        } else {
+            for (let listener of this.highlightingListeners) {
+                listener.shouldBeHighlighted(id);
             }
         }
     }

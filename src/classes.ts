@@ -29,3 +29,7 @@ export class NLSentence implements IIdentifiable {
         return this.content;
     }
 }
+
+export class CodeModel {
+    
+}

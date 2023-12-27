@@ -1,5 +1,5 @@
 
-import { TraceabilityLink,NLSentence} from "./classes";
+import { CodeModel,TraceabilityLink,NLSentence} from "./classes";
 import { UMLComponent,UMLInterface,UMLInterfaceRealization,UMLOperation, UMLBase, UMLUsage } from "./uml";
 
 export function parseTraceLinksFromCSV(content : string) : TraceabilityLink[] {
@@ -177,4 +177,8 @@ export function parseUML(content : string) : UMLBase[] {
         }
     }
     return umlObjects;
+}
+
+export function parseCodeFromACM(content : string) : CodeModel {
+    return new CodeModel();
 }

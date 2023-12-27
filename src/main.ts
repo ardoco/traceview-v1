@@ -1,11 +1,12 @@
 const umlFileUrl = 'https://raw.githubusercontent.com/ArDoCo/Benchmark/main/teastore/model_2020/uml/teastore.uml';
 const nlFileUrl = 'https://raw.githubusercontent.com/ArDoCo/Benchmark/main/teastore/text_2020/teastore.txt';
 const traceLinkFileUrl = 'https://raw.githubusercontent.com/ArDoCo/Benchmark/main/teastore/goldstandards/goldstandard_sad_2020-sam_2020.csv';
+const codeFileUrl = "https://raw.githubusercontent.com/ArDoCo/Benchmark/main/teastore/model_2022/code/codeModel.acm";
 
 const testing_bypassFileInput = true;
 
 import { NLSentence, TraceabilityLink, } from './classes';
-import { parseNLTXT, parseTraceLinksFromCSV, parseUML } from './parse';
+import { parseNLTXT, parseTraceLinksFromCSV, parseUML, parseCodeFromACM } from './parse';
 import { SplitVisualization } from './splitVisualization';
 import { addFileInputPlaceholder, addPlaceholder } from './ui';
 import { UMLBase } from './uml';
@@ -34,9 +35,10 @@ async function init() {
     return new TraceabilityLink(link.target, link.source);
   });
   let umlObjects = parseUML(umlData);
+  let codeModel = parseCodeFromACM(await load(codeFileUrl));
   const colors = new Map<string,string>();
   if (testing_bypassFileInput) {
-    const totalVis : SplitVisualization = new SplitVisualization(middle,sentences,umlObjects,traceLinks);
+    const totalVis : SplitVisualization = new SplitVisualization(middle,sentences,umlObjects,traceLinks, () => {});
   } else {
     let leftContent : NLSentence[] | null = null;
     let traceLinkContent : TraceabilityLink[] | null = null;
@@ -60,7 +62,7 @@ async function init() {
             leftContent = optContent;
             console.log((leftContent == null) + " " + (traceLinkContent == null) + " " + (rightContent == null));
             if (leftContent != null && traceLinkContent != null && rightContent != null) {
-              const totalVis : SplitVisualization = new SplitVisualization(middle,leftContent,rightContent,traceLinkContent);
+              const totalVis : SplitVisualization = new SplitVisualization(middle,leftContent,rightContent,traceLinkContent, () => {});
             }
             return true;
           }
@@ -76,7 +78,7 @@ async function init() {
             traceLinkContent = optContent;
             console.log((leftContent == null) + " " + (traceLinkContent == null) + " " + (rightContent == null));
             if (leftContent != null && traceLinkContent != null && rightContent != null) {
-              const totalVis : SplitVisualization = new SplitVisualization(middle,leftContent,rightContent,traceLinkContent);
+              const totalVis : SplitVisualization = new SplitVisualization(middle,leftContent,rightContent,traceLinkContent, () => {});
             }
             return true;
           }
@@ -92,7 +94,7 @@ async function init() {
             rightContent = optContent;
             console.log((leftContent == null) + " " + (traceLinkContent == null) + " " + (rightContent == null));
             if (leftContent != null && traceLinkContent != null && rightContent != null) {
-              const totalVis : SplitVisualization = new SplitVisualization(middle,leftContent,rightContent,traceLinkContent);
+              const totalVis : SplitVisualization = new SplitVisualization(middle,leftContent,rightContent,traceLinkContent, () => {});
             }
             return true;
           }

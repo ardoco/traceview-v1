@@ -13,7 +13,10 @@ module.exports = {
       './src/ui.ts',
       './src/main.ts',
       './src/umlHighlightingVisualization.ts',
-      './src/splitVisualization.ts'
+      './src/splitVisualization.ts',
+      './src/colorSupplier.ts',
+      './src/visualizationMediator.ts',
+      './src/codeVisualization.ts',
     ]
   },
   resolve: {
