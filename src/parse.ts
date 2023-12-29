@@ -180,5 +180,24 @@ export function parseUML(content : string) : UMLBase[] {
 }
 
 export function parseCodeFromACM(content : string) : CodeModel {
+    const json = JSON.parse(content);
+    const types  = new Set();
+    const typeCounts = new Map();
+    const roots = [];
+    for (let key of Object.keys(json.codeItemRepository.repository)) {
+        if (json.codeItemRepository.repository[key].parentId == null) {
+            roots.push(json.codeItemRepository.repository[key]);
+        }
+        types.add(json.codeItemRepository.repository[key].type);
+        if (!typeCounts.has(json.codeItemRepository.repository[key].type)) {
+            typeCounts.set(json.codeItemRepository.repository[key].type, 0);
+        }
+        typeCounts.set(json.codeItemRepository.repository[key].type, typeCounts.get(json.codeItemRepository.repository[key].type) + 1);
+    }
+    for (let type of types) {
+        console.log(type + ": " + typeCounts.get(type));
+    }
+    //console.log(Object.keys(json.codeItemRepository.repository).length);
+    console.log("Roots: " + roots.length)
     return new CodeModel();
 }

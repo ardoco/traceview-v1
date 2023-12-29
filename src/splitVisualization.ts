@@ -7,11 +7,13 @@ import { UMLBase } from "./uml";
 import { generateRandomRGB } from "./utils";
 import { IIdentifiable } from "./classes";
 import { VisualizationMediator } from "./visualizationMediator";
+import { CodeVisualization } from "./codeVisualization";
 
 export class SplitVisualization {
     
     traceLinks : TraceabilityLink[];
     leftVisualization : HighlightingVisualization;
+    centerVisualization : HighlightingVisualization;
     rightVisualization : HighlightingVisualization;
 
     constructor(viewport : HTMLElement, sentences : NLSentence[], umlObjects : UMLBase[], traceLinks : TraceabilityLink[], onClose : () => void) {
@@ -23,14 +25,19 @@ export class SplitVisualization {
             highlightableSentences.add(link.source);
             highlightableUMLObjects.add(link.target);
         }
-        this.leftVisualization = SplitVisualization.fabricateVisualizationPanel(viewport, "SA Description","35%", false, (vp) => new NLHighlightingVisualization(vp, sentences, Array.from(highlightableSentences)));
-        this.rightVisualization = SplitVisualization.fabricateVisualizationPanel(viewport, "UML", "55%", true, (vp) => new UMLHighlightingVisualization(vp, umlObjects, Array.from(highlightableUMLObjects)));
-        (viewport.firstChild! as HTMLElement).style.marginRight = "1%";
-        (viewport.lastChild! as HTMLElement).style.marginLeft = "1%";
-        const lv = this.leftVisualization;
-        const rv = this.rightVisualization;
-        
-        const mediator = new VisualizationMediator([traceLinks], [this.leftVisualization, this.rightVisualization], new CountingColorSupplier(30));
+        this.leftVisualization = SplitVisualization.fabricateVisualizationPanel(viewport, "S.A. Description","15%", false,
+            (vp) => new NLHighlightingVisualization(vp, sentences, Array.from(highlightableSentences))
+        );
+        this.centerVisualization = SplitVisualization.fabricateVisualizationPanel(viewport, "UML", "40%", true,
+            (vp) => new UMLHighlightingVisualization(vp, umlObjects, Array.from(highlightableUMLObjects))
+        );
+        this.rightVisualization = SplitVisualization.fabricateVisualizationPanel(viewport, "Code Model","40%", true,
+            (vp) => new CodeVisualization(vp, [])
+        );
+        //(viewport.firstChild! as HTMLElement).style.marginRight = "1%";
+        (viewport.firstChild?.nextSibling! as HTMLElement).style.marginRight = "1%";      
+        (viewport.firstChild?.nextSibling! as HTMLElement).style.marginLeft = "1%";        
+        const mediator = new VisualizationMediator([traceLinks], [this.leftVisualization, this.centerVisualization, this.rightVisualization], new CountingColorSupplier(30));
     }
 
     private static fabricateVisualizationPanel(

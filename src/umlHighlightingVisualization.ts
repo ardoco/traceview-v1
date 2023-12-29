@@ -55,7 +55,7 @@ class Edge {
 
 export class UMLHighlightingVisualization extends HighlightingVisualization {
 
-    protected plot : d3.Selection<SVGSVGElement, unknown, HTMLElement, any>;
+    protected plot : d3.Selection<SVGSVGElement, unknown, null, undefined>
     constructor(viewport : HTMLElement, classes : UMLBase[], highlightableIds: string[]) {
         super(highlightableIds);
         const fontSize : number = 20;
@@ -68,7 +68,7 @@ export class UMLHighlightingVisualization extends HighlightingVisualization {
         const data : UMLGraphNode[] = components.map((c) => {
             const x : number = randomGen.next() * (xMax - 2*pseudoMargin) + pseudoMargin;
             const y : number = randomGen.next() * (yMax - 2*pseudoMargin) + pseudoMargin;
-            return new UMLGraphNode(x, y, c.getName(), c.getIdentifier(), c.constructor.name, getTextWidth(c.getName(), fontSize) + 40, 32);
+            return new UMLGraphNode(x, y, c.getName(), c.getIdentifier(), c.constructor.name, getTextWidth(c.getName(), fontSize) + 25, 32);
         });
         const edgeSet = new Set<Edge>();
         for (let c of components) {
@@ -84,8 +84,9 @@ export class UMLHighlightingVisualization extends HighlightingVisualization {
             }
         }
         const links = Array.from(edgeSet);
-        this.plot = d3.select("body").append("svg");
-        viewport.appendChild(document.querySelector('svg')!);
+        //this.plot = d3.select("body").append("svg");
+        //viewport.appendChild(document.querySelector('svg')!);
+        this.plot = d3.select(viewport).append("svg");
         this.plot
             .attr("width", viewport.clientWidth)
             .attr("height", viewport.clientHeight);
@@ -93,7 +94,7 @@ export class UMLHighlightingVisualization extends HighlightingVisualization {
         const semiCirclePath = d3.path();
         semiCirclePath.arc(25,25,7,0.5 * Math.PI,0.5 * Math.PI + Math.PI, false);
         semiCirclePath.moveTo(30,25);
-        semiCirclePath.arc(25,25,4,0,2*Math.PI);
+        semiCirclePath.arc(25,25,4,0,2*Math.PI);            
 
         const xScale = d3.scaleLinear()
           .domain([0, xMax])
@@ -176,7 +177,7 @@ export class UMLHighlightingVisualization extends HighlightingVisualization {
             .attr("x", d => (xScale(data[d.target].x) + xScale(data[d.source].x)) / 2)
             .attr("y", d => (yScale(data[d.target].y) + yScale(data[d.source].y)) / 2)
             .text(d => d.label)
-            .attr("font-size", 0.75 * fontSize)
+            .attr("font-size", 0.6 * fontSize)
             .attr("text-anchor", "middle")
             .attr("stroke", PREFERENCE_COLOR)
             .attr("stroke-dasharray", null)
@@ -212,7 +213,7 @@ export class UMLHighlightingVisualization extends HighlightingVisualization {
             })
             .on('end', (event : any, d : UMLGraphNode) => {});
         nodesSelection.call(dragHandler as any);
-        labelSelection.call(dragHandler as any);
+        labelSelection.call(dragHandler as any);    
     }
 
     handleClickOn(id: string) : void {
