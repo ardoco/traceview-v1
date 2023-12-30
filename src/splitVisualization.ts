@@ -32,7 +32,7 @@ export class SplitVisualization {
             (vp) => new UMLHighlightingVisualization(vp, umlObjects, Array.from(highlightableUMLObjects))
         );
         this.rightVisualization = SplitVisualization.fabricateVisualizationPanel(viewport, "Code Model","40%", true,
-            (vp) => new CodeVisualization(vp, [])
+            (vp) => new CodeVisualization(vp, umlObjects, Array.from(highlightableUMLObjects))
         );
         //(viewport.firstChild! as HTMLElement).style.marginRight = "1%";
         (viewport.firstChild?.nextSibling! as HTMLElement).style.marginRight = "1%";      

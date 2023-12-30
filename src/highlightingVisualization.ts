@@ -14,6 +14,11 @@ export interface HighlightingSubject {
 
 export abstract class HighlightingVisualization implements HighlightingSubject {
 
+    protected static PREFERENCE_COLOR = "black";
+    protected static  PREFERENCE_COLOR_SELECTABLE = "black";
+    protected static  PREFERENCE_COLOR_UNSELECTABLE = "rgb(110,110,110)";
+
+
     private highlightingListeners : HighlightingListener[];
     protected currentlyHighlighted : Map<string,boolean>;
 
