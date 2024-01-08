@@ -4,8 +4,11 @@ import { UMLBase, UMLComponent, UMLInterface } from './uml';
 import { Random, getTextWidth } from './utils';
 import {HighlightingListener, HighlightingSubject, HighlightingVisualization} from './highlightingVisualization';
 import { ColorSupplier } from './colorSupplier';
+import { Config } from './config';
+import { UIButton } from './abstractUI';
 
-const ENVIRONMENT_SCALE = 1;
+const EDGE_LABEL_SCALE = 0.7;
+const FONT_SIZE = 15;
 
 interface Node extends d3.SimulationNodeDatum {
     id: string;
@@ -18,41 +21,75 @@ interface Edge extends d3.SimulationLinkDatum<Node> {
     source: string;
     target: string;
     label: string;
+    id: string;
 }
 
 
 export class UMLHighlightingVisualization extends HighlightingVisualization {
 
     protected plot : d3.Selection<SVGSVGElement, unknown, null, undefined>
-    constructor(viewport : HTMLElement, classes : UMLBase[], highlightableIds: string[]) {
-        super(highlightableIds);
-        const fontSize : number = 20;
+    protected simulation : d3.Simulation<Node, Edge>;
+    protected showEdgeLabels : boolean;
+    protected dragFrozen : boolean;
+    protected edgeLabels : d3.Selection<SVGTextElement, Edge, SVGSVGElement, unknown>;
+    protected firstEdgesSelection  : d3.Selection<SVGLineElement, Edge, SVGSVGElement, unknown>;
+    protected secondEdgesSelection : d3.Selection<SVGLineElement, Edge, SVGSVGElement, unknown>;
+    protected nodes : Node[]
+        
+
+    constructor(viewport : HTMLElement, classes : UMLBase[], highlightableIds: string[], color : string, colorNotSelectable : string, backgroundColor : string) {
+        super(highlightableIds,color, colorNotSelectable, backgroundColor);
+        this.showEdgeLabels = true;
+        this.dragFrozen = true;
         const components = classes.filter((c) => c instanceof UMLComponent).map((c) => c as UMLComponent);
         const interfaces = classes.filter((c) => c instanceof UMLInterface).map((c) => c as UMLInterface);
-        const nodes : Node[] = components.map((c) => {
-            return {id: c.getIdentifier(), width: getTextWidth(c.getName(), fontSize) + 25, height : 32, name: c.getName()};
+        this.nodes = components.map((c) => {
+            return {id: c.getIdentifier(), width: getTextWidth(c.getName(), FONT_SIZE) + 25, height : 32, name: c.getName()};
         });
-        const edgeSet = new Set<Edge>();
+        const edgeSet = new Map<string,Edge>();
         for (let c of components) {
             for (let usage of c.getUsages()) {
                 for (let otherComponent of components) {
                     if (otherComponent.getInterfaceRealizations().find((r) => r.getTargetId() == usage.getTargetId())) {
-                        const nameOfInterface = interfaces.find((c) => c.getIdentifier() == usage.getTargetId() && c.constructor.name == "UMLInterface")!.getName();
-                        edgeSet.add({source: c.getIdentifier(), target: otherComponent.getIdentifier(), label: nameOfInterface});
+                        const iface = interfaces.find((c) => c.getIdentifier() == usage.getTargetId() && c.constructor.name == "UMLInterface")!;
+                        edgeSet.set(c.getIdentifier() + otherComponent.getIdentifier(),{source: c.getIdentifier(), target: otherComponent.getIdentifier(), label: iface.getName(), id: iface.getIdentifier()});
                     }
                 }
             }
         }
-        const links = Array.from(edgeSet);
+        const width = 2*viewport.clientWidth;
+        const height = 2*viewport.clientHeight;
+        const links = Array.from(edgeSet.values());
         this.plot = d3.select(viewport).append("svg")
-            .attr("width", viewport.clientWidth)
-            .attr("height", viewport.clientHeight);
+            .attr("width", width)
+            .attr("height", height);
+        viewport.scrollLeft = width / 4;
+        viewport.scrollTop = height / 4;
+        (viewport.firstChild as HTMLElement).style.backgroundColor = this.colorBackground;
         this.secretlyMakeMarkers();
-        const simulation = d3.forceSimulation(nodes)
+        this.simulation = d3.forceSimulation(this.nodes)
             .force('link', d3.forceLink(links).id(d => (d as any).id).distance(100))
             .force('charge', d3.forceManyBody().strength(d => 1000))
-            .force('collision', d3.forceCollide().radius(150))
-            .force('center', d3.forceCenter(viewport.clientWidth / 2, viewport.clientHeight / 2));
+            .force('collision', d3.forceCollide().radius(d => Math.min((d as any).width, 150)))
+            .force('center', d3.forceCenter(width / 2, height / 2));
+        const simulation = this.simulation;
+        const dragstarted = (event: any, d: any) => {
+            if (this.dragFrozen) return;
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+        const dragged = (event: any, d: any) => {
+            if (this.dragFrozen) return;
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+        const dragended = (event: any, d: any) => {
+            if (this.dragFrozen) return;
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
         const rectDrag = d3.drag<SVGRectElement, Node>()
             .on('start', dragstarted)
             .on('drag', dragged)
@@ -66,50 +103,50 @@ export class UMLHighlightingVisualization extends HighlightingVisualization {
             .enter()
             .append("g")
             .attr("stroke-width", 2)
-            .attr("stroke", HighlightingVisualization.PREFERENCE_COLOR);
-        const link2 = linkGroups.append("line");
-        const link1 = linkGroups.append("line").attr("marker-end", "url(#semicircle)");
+            .attr("stroke", this.colorSelectable);
+        this.secondEdgesSelection = linkGroups.append("line");
+        this.firstEdgesSelection = linkGroups.append("line").attr("marker-end", "url(#semicircle)");
         const node = this.plot.selectAll<SVGRectElement, Node>("rect")
-            .data(nodes)
+            .data(this.nodes)
             .enter()
             .append("rect")
             .attr("width", (d) => d.width)
             .attr("height", (d) => d.height)
             .attr("rx", 2)
             .attr("ry", 2)
-            .attr("fill", "white")
-            .attr("stroke", HighlightingVisualization.PREFERENCE_COLOR)
+            .attr("fill", this.colorBackground)
+            .attr("stroke", this.colorSelectable)
             .attr("cursor", (d : Node) => this.currentlyHighlighted.has(d.id) ? "pointer" : "default")
             .classed("uml-node", true)
             .on("click", (i, d : Node) => this.handleClickOn(d.id))
             .call(rectDrag);
         const labelSelection = this.plot.selectAll<SVGTextElement, Node>("text")
-            .data(nodes)
+            .data(this.nodes)
             .enter()
             .append("text")
             .attr("dy", 5)
             .attr("dx", 0)
             .attr("text-anchor", "middle")
-            .attr("font-size", fontSize)
-            .attr("stroke", (d : Node) => this.currentlyHighlighted.has(d.id) ? HighlightingVisualization.PREFERENCE_COLOR_SELECTABLE : HighlightingVisualization.PREFERENCE_COLOR_UNSELECTABLE)
+            .attr("font-size", FONT_SIZE)
+            .attr("stroke", (d : Node) => this.currentlyHighlighted.has(d.id) ? this.colorSelectable : colorNotSelectable)
             .attr("cursor", (d : Node) => this.currentlyHighlighted.has(d.id) ? "pointer" : "default")
             .text(d => d.name)
             .classed("uml-node", true)
             .on("click  ", (i, d : Node) => this.handleClickOn(d.id))
             .call(labelDrag);
-        const edgeLabels = linkGroups.append("text")
+        this.edgeLabels = linkGroups.append("text")
             .text(d => d.label)
-            .attr("font-size", 0.6 * fontSize)
+            .attr("stroke", (d : Edge) => this.currentlyHighlighted.has(d.id) ? this.colorSelectable : colorNotSelectable)
+            .attr("font-size", EDGE_LABEL_SCALE * FONT_SIZE)
             .attr("text-anchor", "middle")
-            .attr("stroke", HighlightingVisualization.PREFERENCE_COLOR)
             .attr("stroke-dasharray", null)
             .attr("stroke-width", 0.5)
-            .attr("dy", -1.2 * fontSize)
+            .attr("dy", -1.2 * FONT_SIZE)
             .style("user-select", "none")
-            .attr("transform", this.getEdgeLabelTransform(nodes));
-        this.redrawEdges(link1, link2,edgeLabels,nodes);
+            .attr("transform", this.getEdgeLabelTransform());
+        this.redrawEdges();
         simulation.on('tick', () => {
-            this.redrawEdges(link1,link2,edgeLabels,nodes);
+            this.redrawEdges();
             node
                 .attr('x', d => (d as any).x - d.width/ 2)
                 .attr('y', d => (d as any).y - d.height / 2);
@@ -117,42 +154,38 @@ export class UMLHighlightingVisualization extends HighlightingVisualization {
                 .attr('x', d => (d as any).x)
                 .attr('y', d => (d as any).y);
         });
-        function dragstarted(event: any, d: any) {
-            if (!event.active) simulation.alphaTarget(0.3).restart();
-            d.fx = d.x;
-            d.fy = d.y;
-        }
-        function dragged(event: any, d: any) {
-            d.fx = event.x;
-            d.fy = event.y;
-        }
-        function dragended(event: any, d: any) {
-            if (!event.active) simulation.alphaTarget(0);
-            d.fx = null;
-            d.fy = null;
-        }
         for (let i = 0; i < 1000; i++) simulation.tick();
     }
     
-    private redrawEdges(firstEdgesSelection  : d3.Selection<SVGLineElement, Edge, SVGSVGElement, unknown>,
-        secondEdgesSelection : d3.Selection<SVGLineElement, Edge, SVGSVGElement, unknown>,
-        edgeLabels : d3.Selection<SVGTextElement, Edge, SVGSVGElement, unknown>,
-        nodes : Node[]
-        ) : void {
-        firstEdgesSelection
+    private redrawEdges() : void {
+        this.firstEdgesSelection
             .attr('x1', d => this.edgeSourcePosition(d).x)
             .attr('y1', d => this.edgeSourcePosition(d).y)
             .attr('x2', d => this.edgeCenterPosition(d).x)
             .attr('y2', d => this.edgeCenterPosition(d).y);
-        secondEdgesSelection
+        this.secondEdgesSelection
             .attr('x1', d => this.edgeCenterPosition(d).x)
             .attr('y1', d => this.edgeCenterPosition(d).y)
             .attr('x2', d => this.edgeTargetPosition(d).x)
             .attr('y2', d => this.edgeTargetPosition(d).y);
-        edgeLabels
+        this.edgeLabels
             .attr('x', d => this.edgeCenterPosition(d).x)
             .attr('y', d => this.edgeCenterPosition(d).y)
-            .attr("transform", this.getEdgeLabelTransform(nodes));
+            .attr("transform", this.getEdgeLabelTransform())
+            .style("display", this.showEdgeLabels ? "block" : "none");
+    }
+
+    getButtons(): UIButton[] {
+        const buttons = [new UIButton("❄", () => {
+                    this.dragFrozen = !this.dragFrozen;
+                    return this.dragFrozen;
+                }, true, this.dragFrozen),
+            new UIButton("⎁", () => {
+                    this.showEdgeLabels = !this.showEdgeLabels;
+                    this.redrawEdges();
+                    return this.showEdgeLabels;
+                }, true, this.showEdgeLabels)];
+        return buttons.concat(super.getButtons());
     }
 
     private edgeSourcePosition(d : Edge) : {x : number, y : number} {
@@ -176,8 +209,14 @@ export class UMLHighlightingVisualization extends HighlightingVisualization {
     protected highlightElement(id: string, color : string): void {
         this.setNodeColor(id, color);
     }
+
     protected unhighlightElement(id: string): void {
-        this.setNodeColor(id, HighlightingVisualization.PREFERENCE_COLOR);
+        this.setNodeColor(id, this.colorSelectable);
+    }
+
+    public getName(id: string): string {
+        // TODO
+        return this.nodes.find((n) => n.id == id)!.name;
     }
 
     private setNodeColor(id : string, color : string) : void {
@@ -190,7 +229,7 @@ export class UMLHighlightingVisualization extends HighlightingVisualization {
             .attr("fill", color);
     }
 
-    private getEdgeLabelTransform(data : Node[]) : (d : Edge) => string {
+    private getEdgeLabelTransform() : (d : Edge) => string {
         return (d) => {
             const x1 = this.edgeSourcePosition(d).x;
             const y1 = this.edgeSourcePosition(d).y;
@@ -215,8 +254,8 @@ export class UMLHighlightingVisualization extends HighlightingVisualization {
             .attr("markerHeight", 50)
             .attr("orient", "auto")
             .append("path")
-            .attr("fill", "white")
-            .attr("stroke", HighlightingVisualization.PREFERENCE_COLOR)
+            .attr("fill", this.colorBackground)
+            .attr("stroke", this.colorSelectable)
             .attr('d', semiCirclePath.toString());
         this.plot.append("defs").append("marker")
             .attr("id", "arrowhead")
@@ -227,7 +266,7 @@ export class UMLHighlightingVisualization extends HighlightingVisualization {
             .attr("orient", "auto")
             .append("path")
             .attr("fill", "none")
-            .attr("stroke", HighlightingVisualization.PREFERENCE_COLOR)
+            .attr("stroke", this.colorSelectable)
             .attr("d", "M0,0 L10,5 L0,10");
     }
 }

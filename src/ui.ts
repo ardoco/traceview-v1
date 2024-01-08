@@ -1,5 +1,3 @@
-import { select } from "d3";
-
 export function addPlaceholder(parent : HTMLElement, width : string, height : string, text : string[], fontSize : string,listener : () => void) {
     const placeholder = document.createElement('div');
     placeholder.style.height = height;

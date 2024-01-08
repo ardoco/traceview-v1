@@ -1,0 +1,45 @@
+import { Buttoned, UIButton } from "./abstractUI";
+import { TraceLinkListener } from "./visualizationMediator";
+import { TraceabilityLink } from "./classes";
+
+export class TraceLinkVisualization implements Buttoned, TraceLinkListener {
+
+    protected colorSelectable : string;
+    protected viewport : HTMLElement;
+
+    constructor(viewport : HTMLElement, colorSelectable : string, colorBackground : string) {
+        this.viewport = viewport;
+        this.viewport.style.backgroundColor = colorBackground;
+        this.viewport.style.fontSize = "10px";
+        this.colorSelectable = colorSelectable;
+        this.reportStateChanged([],[], []); 
+    }
+
+    reportStateChanged(links : TraceabilityLink[], colors : string[], names : string[][]): void {
+        this.viewport.innerHTML = "";
+        for (let i = 0; i < links.length; i++) {
+            const link = links[i];
+            const color = colors[i];
+            const source = names[i][0];
+            const target = names[i][1];
+            const linkContainer = document.createElement('div');
+            const text = document.createElement("div");
+            text.style.color = color;
+            text.style.textShadow = "1px 1px 1px black";
+            text.appendChild(document.createTextNode("(" + source + " -> " + target + ")"));
+            this.viewport.appendChild(text);
+            this.viewport.appendChild(linkContainer);
+            if (i < links.length - 1) {
+                const separator = document.createElement("div");
+                separator.style.marginRight = "10px";
+                separator.style.color = this.colorSelectable;
+                separator.appendChild(document.createTextNode(","));
+                this.viewport.appendChild(separator);
+            }
+        }   
+    }
+
+    getButtons(): UIButton[] {
+        return [];
+    }
+}

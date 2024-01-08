@@ -1,6 +1,7 @@
 
-import { CodeModel,TraceabilityLink,NLSentence} from "./classes";
+import {TraceabilityLink,NLSentence} from "./classes";
 import { UMLComponent,UMLInterface,UMLInterfaceRealization,UMLOperation, UMLBase, UMLUsage } from "./uml";
+
 
 export function parseTraceLinksFromCSV(content : string) : TraceabilityLink[] {
     let links : TraceabilityLink[] = [];
@@ -10,6 +11,8 @@ export function parseTraceLinksFromCSV(content : string) : TraceabilityLink[] {
         let link = line.split(',');
         if (link.length == 2) {
             links.push(new TraceabilityLink(link[0], link[1]));
+        } else if (link.length == 3) {
+            links.push(new TraceabilityLink(link[0], link[2]));
         }
     }
     return links;
@@ -177,27 +180,4 @@ export function parseUML(content : string) : UMLBase[] {
         }
     }
     return umlObjects;
-}
-
-export function parseCodeFromACM(content : string) : CodeModel {
-    const json = JSON.parse(content);
-    const types  = new Set();
-    const typeCounts = new Map();
-    const roots = [];
-    for (let key of Object.keys(json.codeItemRepository.repository)) {
-        if (json.codeItemRepository.repository[key].parentId == null) {
-            roots.push(json.codeItemRepository.repository[key]);
-        }
-        types.add(json.codeItemRepository.repository[key].type);
-        if (!typeCounts.has(json.codeItemRepository.repository[key].type)) {
-            typeCounts.set(json.codeItemRepository.repository[key].type, 0);
-        }
-        typeCounts.set(json.codeItemRepository.repository[key].type, typeCounts.get(json.codeItemRepository.repository[key].type) + 1);
-    }
-    for (let type of types) {
-        console.log(type + ": " + typeCounts.get(type));
-    }
-    //console.log(Object.keys(json.codeItemRepository.repository).length);
-    console.log("Roots: " + roots.length)
-    return new CodeModel();
 }

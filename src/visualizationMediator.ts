@@ -4,20 +4,22 @@ import { IIdentifiable, TraceabilityLink } from "./classes";
 import { ColorSupplier } from "./colorSupplier";
 import { active } from "d3";
 
-class MediationTraceabilityLink {
-    source : string;
-    target : string;
+export interface TraceLinkListener {
+    reportStateChanged(links : TraceabilityLink[], colors : string[], names : string[][]) : void;
+}
+
+
+export class MediationTraceabilityLink extends TraceabilityLink {
     sourceVisIndex : number;
     targetVisIndex : number;
 
     constructor(source : string, target : string, sourceVisIndex : number, targetVisIndex : number) {
-        this.source = source;
-        this.target = target;
+        super(source, target);
         this.sourceVisIndex = sourceVisIndex;
         this.targetVisIndex = targetVisIndex;
     }
 
-    reverse() : MediationTraceabilityLink {
+    reversed() : MediationTraceabilityLink {
         return new MediationTraceabilityLink(this.target, this.source, this.targetVisIndex, this.sourceVisIndex);
     }
 }
@@ -29,17 +31,13 @@ export class VisualizationMediator {
     protected colorSupplier : ColorSupplier;
     protected activeLinks : MediationTraceabilityLink[];
     protected lastPrimaryVisualizationIndex : number;
+    protected listeners : TraceLinkListener[];
 
-    constructor(traceLinks : TraceabilityLink[][], visualizations : HighlightingVisualization[], colorSupplier : ColorSupplier) {
+    constructor(traceLinks : MediationTraceabilityLink[], visualizations : HighlightingVisualization[], colorSupplier : ColorSupplier) {
+        this.listeners = [];
         this.lastPrimaryVisualizationIndex = 0;
-        this.traceLinks = [];
         this.activeLinks = [];
-        for (let i = 0; i < traceLinks.length; i++) {
-            for (let traceLink of traceLinks[i]) {
-                this.traceLinks.push(new MediationTraceabilityLink(traceLink.source, traceLink.target, i, i+1));
-                this.traceLinks.push(new MediationTraceabilityLink(traceLink.target, traceLink.source, i+1, i));
-            }
-        }       
+        this.traceLinks = traceLinks.map((link) => link); 
         this.visualizations = [];
         this.colorSupplier = colorSupplier;
         const handleHighlight = (sourceVisIndex: number, id: string): void => {
@@ -69,10 +67,16 @@ export class VisualizationMediator {
     }
 
     private drawActiveLinks(): void {
-        for (let link of this.activeLinks) {
-            const color = this.colorSupplier.reserveColor(link.source);
-            this.visualizations[link.sourceVisIndex]!.highlight(link.source, color);
-            this.visualizations[link.targetVisIndex]!.highlight(link.target, color);
+        const colors = this.activeLinks.map((link) => this.colorSupplier.reserveColor(link.source));
+        const names = this.activeLinks.map((link) => [this.visualizations[link.sourceVisIndex]!.getName(link.source), this.visualizations[link.targetVisIndex]!.getName(link.target)]);
+        for (let i = 0; i < this.activeLinks.length; i++) {
+            const link = this.activeLinks[i];
+            console.log(link);
+            this.visualizations[link.sourceVisIndex]!.highlight(link.source, colors[i]);
+            this.visualizations[link.targetVisIndex]!.highlight(link.target, colors[i]);
+        }
+        for (let listener of this.listeners) {
+            listener.reportStateChanged(this.activeLinks.map((link) => link), colors, names);
         }
     }
 
@@ -109,4 +113,17 @@ export class VisualizationMediator {
     private getOutgoingLinks(id : string) : MediationTraceabilityLink[] {
         return this.traceLinks.filter((link) => link.source == id);
     }
+
+    addListener(listener : TraceLinkListener) : void {
+        this.listeners.push(listener);
+    }
+
+    getActiveLinks() : MediationTraceabilityLink[] {
+        const active =[];
+        for (let link of this.activeLinks) {
+            active.push(link);
+        }
+        return active
+    }
+        
 }

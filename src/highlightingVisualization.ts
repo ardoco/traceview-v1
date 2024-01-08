@@ -1,5 +1,4 @@
-import { IIdentifiable } from "./classes";
-import { ColorSupplier } from "./colorSupplier";
+import { Buttoned, UIButton } from "./abstractUI";
 
 export interface HighlightingListener {
     shouldBeHighlighted(id : string) : void;
@@ -12,27 +11,37 @@ export interface HighlightingSubject {
     setUnhighlighted(id : string) : void;
 }
 
-export abstract class HighlightingVisualization implements HighlightingSubject {
-
-    protected static PREFERENCE_COLOR = "black";
-    protected static  PREFERENCE_COLOR_SELECTABLE = "black";
-    protected static  PREFERENCE_COLOR_UNSELECTABLE = "rgb(110,110,110)";
-
+export abstract class HighlightingVisualization implements HighlightingSubject, Buttoned {
 
     private highlightingListeners : HighlightingListener[];
     protected currentlyHighlighted : Map<string,boolean>;
 
-    constructor(highlightableIds : string[]) {
+    protected colorSelectable : string;
+    protected colorNotSelectable : string;
+    protected colorBackground : string;
+
+    constructor(highlightableIds : string[], colorSelctable : string, colorUnselectable : string, colorBackground : string) {
         this.highlightingListeners = [];
         this.currentlyHighlighted = new Map<string,boolean>(highlightableIds.map((id) => [id,false]));
+        this.colorSelectable = colorSelctable;
+        this.colorNotSelectable = colorUnselectable;
+        this.colorBackground = colorBackground;
     }
 
     protected abstract highlightElement(id: string, color : string): void;
     protected abstract unhighlightElement(id: string): void;
 
+    public abstract getName(id : string) : string;
+
+    getButtons(): UIButton[] {
+        return [new UIButton(UIButton.SYMBOL_REFRESH, () => {this.unhighlightAll(); return true;})];
+    }
+
     unhighlightAll() : void {
         for (let id of this.currentlyHighlighted.keys()) {
-            this.unhighlightElement(id);
+            if (this.currentlyHighlighted.get(id)) {
+                this.toggleHighlight(id);
+            }
         }
     }
 
@@ -60,5 +69,9 @@ export abstract class HighlightingVisualization implements HighlightingSubject {
                 listener.shouldBeHighlighted(id);
             }
         }
+    }
+
+    protected idIsHighlightable(id : string) : boolean {
+        return this.currentlyHighlighted.has(id);
     }
 }

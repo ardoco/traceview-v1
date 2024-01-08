@@ -10,6 +10,10 @@ export class TraceabilityLink {
         this.source = source;
         this.target = target;
     }
+
+    reversed() {
+        return new TraceabilityLink(this.target, this.source);
+    }
 }
 
 export class NLSentence implements IIdentifiable {
@@ -28,8 +32,4 @@ export class NLSentence implements IIdentifiable {
     public getContent() {
         return this.content;
     }
-}
-
-export class CodeModel {
-    
 }

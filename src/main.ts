@@ -1,15 +1,13 @@
-const umlFileUrl = 'https://raw.githubusercontent.com/ArDoCo/Benchmark/main/teastore/model_2020/uml/teastore.uml';
-const nlFileUrl = 'https://raw.githubusercontent.com/ArDoCo/Benchmark/main/teastore/text_2020/teastore.txt';
-const traceLinkFileUrl = 'https://raw.githubusercontent.com/ArDoCo/Benchmark/main/teastore/goldstandards/goldstandard_sad_2020-sam_2020.csv';
-const codeFileUrl = "https://raw.githubusercontent.com/ArDoCo/Benchmark/main/teastore/model_2022/code/codeModel.acm";
-
-const testing_bypassFileInput = true;
-
 import { NLSentence, TraceabilityLink, } from './classes';
-import { parseNLTXT, parseTraceLinksFromCSV, parseUML, parseCodeFromACM } from './parse';
-import { SplitVisualization } from './splitVisualization';
+import { parseNLTXT, parseTraceLinksFromCSV, parseUML } from './parse';
+import { parseCodeFromACM } from './parseACM';
+import { SplitVisualization } from './splitVis';
 import { addFileInputPlaceholder, addPlaceholder } from './ui';
 import { UMLBase } from './uml';
+import { Config } from './config';
+import { CodeModel } from './acmClasses';
+import { CountingColorSupplier } from './colorSupplier';
+import { MediationTraceabilityLink } from './visualizationMediator';
 
 async function load(url: string): Promise<string> {
   return fetch(url)
@@ -26,102 +24,39 @@ async function load(url: string): Promise<string> {
 }
 
 async function init() {
-  const middle = document.getElementById('middle')!;
-  const umlData = await load(umlFileUrl);
-  const sentencesData = await load(nlFileUrl)
-  const traceLinkData = await load(traceLinkFileUrl);
-  let sentences : NLSentence[] = parseNLTXT(sentencesData);
-  let traceLinks = parseTraceLinksFromCSV(traceLinkData).map((link) => {
-    return new TraceabilityLink(link.target, link.source);
-  });
-  let umlObjects = parseUML(umlData);
-  let codeModel = parseCodeFromACM(await load(codeFileUrl));
-  const colors = new Map<string,string>();
-  if (testing_bypassFileInput) {
-    const totalVis : SplitVisualization = new SplitVisualization(middle,sentences,umlObjects,traceLinks, () => {});
-  } else {
-    let leftContent : NLSentence[] | null = null;
-    let traceLinkContent : TraceabilityLink[] | null = null;
-    let rightContent : UMLBase[] | null = null;
-    const placeholder = document.createElement('div');
-    placeholder.style.height = "90%";
-    placeholder.style.width = "70%";
-    placeholder.classList.add("placeholder-shared");
-    placeholder.style.backgroundColor = "rgb(255,255,255)";
-    placeholder.style.border = "1px solid black";
-    placeholder.style.userSelect = "none";
-    placeholder.style.flexDirection = "row";
-    placeholder.appendChild(document.createTextNode("+"));
-    placeholder.style.fontSize = "100px";
-    placeholder.addEventListener("click", () => {
-      placeholder.innerHTML = "";
-      addFileInputPlaceholder(placeholder, "40%", "90%", "Left", "50px", (fileContent : string) => {
-        try {
-          const optContent = parseNLTXT(fileContent);
-          if (optContent != null && optContent.length > 0) {
-            leftContent = optContent;
-            console.log((leftContent == null) + " " + (traceLinkContent == null) + " " + (rightContent == null));
-            if (leftContent != null && traceLinkContent != null && rightContent != null) {
-              const totalVis : SplitVisualization = new SplitVisualization(middle,leftContent,rightContent,traceLinkContent, () => {});
-            }
-            return true;
-          }
-          return false;
-        } catch (e) {
-          return false;
-        }
-      });
-      addFileInputPlaceholder(placeholder, "40%", "90%", "Trace Links", "30px", (fileContent : string) => {
-        try {
-          const optContent = parseTraceLinksFromCSV(fileContent);
-          if (optContent != null && optContent.length > 0) {
-            traceLinkContent = optContent;
-            console.log((leftContent == null) + " " + (traceLinkContent == null) + " " + (rightContent == null));
-            if (leftContent != null && traceLinkContent != null && rightContent != null) {
-              const totalVis : SplitVisualization = new SplitVisualization(middle,leftContent,rightContent,traceLinkContent, () => {});
-            }
-            return true;
-          }
-          return false;
-        } catch (e) {
-          return false;
-        }
-      });
-      addFileInputPlaceholder(placeholder, "40%", "90%", "Right", "50px", (fileContent : string) => {
-        try {
-          const optContent = parseUML(fileContent);
-          if (optContent != null && optContent.length > 0) {
-            rightContent = optContent;
-            console.log((leftContent == null) + " " + (traceLinkContent == null) + " " + (rightContent == null));
-            if (leftContent != null && traceLinkContent != null && rightContent != null) {
-              const totalVis : SplitVisualization = new SplitVisualization(middle,leftContent,rightContent,traceLinkContent, () => {});
-            }
-            return true;
-          }
-          return false;
-        } catch (e) {
-          return false;
-        }
-      });
-      (placeholder.childNodes[1] as HTMLElement).style.borderLeft = "1px solid black";
-      (placeholder.childNodes[1] as HTMLElement).style.borderRight = "1px solid black";
-
-      placeholder.lastChild!.addEventListener("click", () => {
-        console.log("right");
-      });
-      //const totalVis : SplitVisualization = new SplitVisualization(middle,leftContent,rightContent,traceLinks);
-    });
-    middle.appendChild(placeholder);
-    /*
-    if (testing) {
-      //placeholder.dispatchEvent(new Event('click'));
-      for (let child of placeholder.childNodes) {
-        child.dispatchEvent(new Event('click'));
-      }
-    }
-    */
-
+  const top = document.getElementById('top')!;
+  top.innerHTML = "";
+  top.style.textShadow = "1px 1px 1px #000000";
+  const title = "Traceability Links";
+  const highlightCount = 3;
+  const colorSupplier = new CountingColorSupplier(title.length);
+  for (let i = 0; i < title.length; i++) {
+    const letterDiv = document.createElement('span');
+    letterDiv.appendChild(document.createTextNode(title[i]));
+    letterDiv.style.color = i % highlightCount == 0 ? colorSupplier.reserveColor("" + i) : Config.PREFERENCE_COLOR_SELECTABLE;
+    letterDiv.style.marginRight = "0px";
+    top.appendChild(letterDiv);
   }
+  const middle = document.getElementById('middle')!;
+  middle.style.height = "95%";
+  middle.style.backgroundColor = Config.PREFERENCE_COLOR_BACKGROUND;
+  const urlPrefix = "https://raw.githubusercontent.com/ArDoCo/Benchmark/main/teastore/";
+  const tlSentencesToUml = await load(urlPrefix + "/goldstandards/goldstandard_sad_2020-sam_2020.csv");
+  const tlSentencesCode = await load(urlPrefix + "goldstandards/goldstandard_sad_2020-code_2022.csv");
+  const tlUmlToCode = await load(urlPrefix + "goldstandards/goldstandard_sam_2020-code_2022.csv");
+  let sentences : NLSentence[] = parseNLTXT(await load(urlPrefix + "text_2020/teastore.txt"));
+  let umlObjects = parseUML(await load(urlPrefix + "model_2020/uml/teastore.uml"));
+  let codeModel = parseCodeFromACM(await load(urlPrefix + "model_2022/code/codeModel.acm"));
+  function truncateId (id : string) : string {
+    const sep = "tools/descartes/"; // TODO: don't hardcode this
+    return id.indexOf(sep) == -1 ? id : id.substring(id.indexOf(sep));
+  }
+  const totalTraceLinks = [
+    parseTraceLinksFromCSV(tlSentencesToUml).map((link) => new MediationTraceabilityLink(link.target, link.source, 0, 1)),
+    parseTraceLinksFromCSV(tlUmlToCode).map((link) => new MediationTraceabilityLink(link.source, truncateId(link.target), 1, 2)),
+    parseTraceLinksFromCSV(tlSentencesCode).map((link) => new MediationTraceabilityLink(link.source, truncateId(link.target), 0, 2))
+  ].reduce((a,b) => a.concat(b),[]);
+  const totalVis : SplitVisualization = new SplitVisualization(middle,sentences,umlObjects,codeModel, totalTraceLinks,() => {});
 }
 
 document.addEventListener("DOMContentLoaded", () => {
