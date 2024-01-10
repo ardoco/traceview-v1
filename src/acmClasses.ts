@@ -102,7 +102,6 @@ abstract class AbstractACMUnitWithContent<T extends AbstractACMUnit> extends Abs
     }
 
     public getElement(id : string) : AbstractACMUnit | null {
-        console.log("checking " + this.id + " for " + id)
         if (this.id === id) {
             return this;
         }

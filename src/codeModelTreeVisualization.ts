@@ -24,12 +24,8 @@ export class CodeModelTreeVisualization extends HighlightingVisualization {
     constructor(viewport : HTMLElement, codeModel : CodeModel, highlightableIds: string[], colorSelectable : string, colorNotSelectable : string, backgroundColor : string) {
         super(highlightableIds, colorSelectable, colorNotSelectable, backgroundColor);
         this.codeModel = codeModel;
-        const fontSize = 16;
         const scale = 2;
-        const treeScale = 0.8;
-        for (let id of highlightableIds) {
-            console.log(id);
-        }
+        const treeScale = 0.5;
         const nodes : Node[] = [];
         const edges : Edge[] = [];
         this.nodeIdRemapping = new Map<string, string>();
@@ -46,7 +42,7 @@ export class CodeModelTreeVisualization extends HighlightingVisualization {
         const width = scale * viewport.clientWidth;
         const height = scale * viewport.clientHeight;
         this.plot = d3.select(viewport).append("svg").attr("width", width).attr("height", height);
-        viewport.scrollTop = height / 4;
+        viewport.scrollTop = treeScale / 4; // TODO 
         (viewport.firstChild as HTMLElement).style.backgroundColor = this.colorBackground;
         const treeLayout = d3.tree().size([treeScale *width, treeScale * height]);
         const tree = treeLayout(root as any);
@@ -59,7 +55,7 @@ export class CodeModelTreeVisualization extends HighlightingVisualization {
             .enter().append('path')
             .attr('class', 'link')
             .attr('fill', 'none')
-            .attr('stroke', 'gray')
+            .attr('stroke', colorNotSelectable)
             .attr('d', d => {
                 const pathGenerator = d3.linkHorizontal()
                     .x(d => (d as any).y)
@@ -72,13 +68,12 @@ export class CodeModelTreeVisualization extends HighlightingVisualization {
             .data(tree.descendants())
             .enter().append('circle')
             .attr('class', 'node')
-            .attr('r', d => (d as any).data.isPackage || this.idIsHighlightable((d as any).id) ? 5 : 2)
-            .attr('fill', d => this.idIsHighlightable((d as any).id) ? this.colorSelectable : this.colorNotSelectable)
-            .attr('cx', d => (d as any).y)
-            .attr('cy', d => (d as any).x)
-            .on('click', (e,d) => {
-                console.log("clicked circle " + d.constructor.name + " " + d.id); 
-                this.toggleHighlight((d as any).id);
+            .attr('r', (d :any) => this.getNodeStyle(d.data).nodeSize)
+            .attr('fill', (d : any) => this.getNodeStyle(d.data).color)
+            .attr('cx', d => d.y)
+            .attr('cy', d => d.x)
+            .on('click', (e,d : any) => {
+                this.onClick(d.id);
             });
         this.plot.append('g')
             .attr('transform', `translate(${offsetX}, ${offsetY})`)
@@ -86,25 +81,42 @@ export class CodeModelTreeVisualization extends HighlightingVisualization {
             .data(tree.descendants())
             .enter().append('text')
             .attr('class', 'node-label')
-            .attr('x', d => (d as any).y + fontSize)
-            .attr('y', d => (d as any).x)
-            .text(d => (d.data as any).label)
+            .attr('x', (d : any)=> d.y + this.getNodeStyle(d.data).fontSize / 2)
+            .attr('y', (d : any) => d.x - this.getNodeStyle(d.data).fontSize / 4)
+            .text(d => (d.data as any).isPackage ? (d.data as any).label : "")
             .attr("fill", (d) => this.idIsHighlightable((d as any).id) ? this.colorSelectable : this.colorNotSelectable)
-            .attr('font-size', fontSize)
-            .style('user-select', 'none');  
+            .attr('font-size', (d : any) => this.getNodeStyle(d.data).fontSize)
+            .style('user-select', 'none');
     }
 
     protected highlightElement(id: string, color: string): void {
         this.plot.selectAll('.node').filter((d : any) => d.id === id)
             .attr('fill', color);
+        this.plot.selectAll('.node-label').filter((d : any) => d.id === id)
+            .text((d : any) => this.getName(d.id))
+            .style('text-shadow', '1px 1px 1px black')
+            .attr('fill', color);
     }
     protected unhighlightElement(id: string): void {
         this.plot.selectAll('.node').filter((d : any) => d.id === id)
             .attr('fill', this.colorSelectable);
+        this.plot.selectAll('.node-label').filter((d : any) => d.id === id)
+            .text((d : any) => d.data.isPackage ? d.data.label : "")
+            .style('text-shadow', 'none')
+            .attr('fill', this.colorSelectable);
+    }
+
+    private onClick(id : string) : void {      
+        this.toggleHighlight(id);
+    }
+
+    private getNodeStyle(node : Node) : {fontSize : number, color : string, nodeSize : number} {
+        return {fontSize : node.isPackage ? 16 : 8,
+            color : this.idIsHighlightable(node.id) ? this.colorSelectable : this.colorNotSelectable,
+            nodeSize : node.isPackage ? 5 : 2};
     }
 
     public getName(id: string): string {
-        // find code model element with this id 
         const element = this.codeModel.getElement(id);
         return element != null ? element.name : "?" + id;
     }
@@ -124,8 +136,8 @@ export class CodeModelTreeVisualization extends HighlightingVisualization {
             CodeModelTreeVisualization.traverseAndAddNodesAndEdges(subPackage, localPack.id, nodes, edges, contractSingleParentAndChild);
         }
         for (let compilationUnit of localPack.getCompilationUnits()) {
-            const truncatedCompilationUnitId = compilationUnit.id.substring(0, compilationUnit.id.length - 1);
-            nodes.push({id:truncatedCompilationUnitId, label: "", isPackage: false});
+            const truncatedCompilationUnitId = compilationUnit.id;
+            nodes.push({id:truncatedCompilationUnitId, label: compilationUnit.name, isPackage: false});
             edges.push({source: localPack.id, target: truncatedCompilationUnitId, label: ""});
         }
     }

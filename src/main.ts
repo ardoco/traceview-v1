@@ -67,4 +67,5 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   */
   init();
+  // iterate over all html elements on the page
 });

@@ -35,9 +35,14 @@ export class VisualizationMediator {
 
     constructor(traceLinks : MediationTraceabilityLink[], visualizations : HighlightingVisualization[], colorSupplier : ColorSupplier) {
         this.listeners = [];
-        this.lastPrimaryVisualizationIndex = 0;
         this.activeLinks = [];
-        this.traceLinks = traceLinks.map((link) => link); 
+        this.lastPrimaryVisualizationIndex = 0;
+        const uniqueTraceLinks = new Set<MediationTraceabilityLink>();
+        for (let link of traceLinks) {
+            uniqueTraceLinks.add(link);
+            uniqueTraceLinks.add(link.reversed());
+        }
+        this.traceLinks = Array.from(uniqueTraceLinks);
         this.visualizations = [];
         this.colorSupplier = colorSupplier;
         const handleHighlight = (sourceVisIndex: number, id: string): void => {
@@ -81,15 +86,19 @@ export class VisualizationMediator {
     }
 
     private handleHighlight(sourceVisIndex : number, id: string): void {
+        console.log("handling highlight " + sourceVisIndex + " " + id);
         this.ensurePrimaryConsistency(sourceVisIndex);
         this.clearDrawnHighlighting();
+        console.log(this.getOutgoingLinks(id).length);
         this.getOutgoingLinks(id).forEach((link) => {
+            console.log("adding link " + link.source + " " + link.target);
             this.activeLinks.push(link);
         });
         this.drawActiveLinks();
     }
 
     private handleUnhighlight(sourceVisIndex : number, id: string): void {
+        console.log("handling unhighlight " + sourceVisIndex + " " + id);
         this.ensurePrimaryConsistency(sourceVisIndex);
         this.colorSupplier.returnColor(id); 
         this.clearDrawnHighlighting();
@@ -114,11 +123,11 @@ export class VisualizationMediator {
         return this.traceLinks.filter((link) => link.source == id);
     }
 
-    addListener(listener : TraceLinkListener) : void {
+    public addListener(listener : TraceLinkListener) : void {
         this.listeners.push(listener);
     }
 
-    getActiveLinks() : MediationTraceabilityLink[] {
+    public getActiveLinks() : MediationTraceabilityLink[] {
         const active =[];
         for (let link of this.activeLinks) {
             active.push(link);

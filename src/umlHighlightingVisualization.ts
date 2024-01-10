@@ -215,7 +215,6 @@ export class UMLHighlightingVisualization extends HighlightingVisualization {
     }
 
     public getName(id: string): string {
-        // TODO
         return this.nodes.find((n) => n.id == id)!.name;
     }
 

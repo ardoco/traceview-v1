@@ -10,7 +10,7 @@ export class TraceLinkVisualization implements Buttoned, TraceLinkListener {
     constructor(viewport : HTMLElement, colorSelectable : string, colorBackground : string) {
         this.viewport = viewport;
         this.viewport.style.backgroundColor = colorBackground;
-        this.viewport.style.fontSize = "10px";
+        this.viewport.style.fontSize = "15pt";
         this.colorSelectable = colorSelectable;
         this.reportStateChanged([],[], []); 
     }
@@ -26,6 +26,7 @@ export class TraceLinkVisualization implements Buttoned, TraceLinkListener {
             const text = document.createElement("div");
             text.style.color = color;
             text.style.textShadow = "1px 1px 1px black";
+            text.style.userSelect = "none";
             text.appendChild(document.createTextNode("(" + source + " -> " + target + ")"));
             this.viewport.appendChild(text);
             this.viewport.appendChild(linkContainer);
@@ -33,6 +34,8 @@ export class TraceLinkVisualization implements Buttoned, TraceLinkListener {
                 const separator = document.createElement("div");
                 separator.style.marginRight = "10px";
                 separator.style.color = this.colorSelectable;
+                separator.style.textShadow = "1px 1px 1px black";
+                separator.style.userSelect = "none";
                 separator.appendChild(document.createTextNode(","));
                 this.viewport.appendChild(separator);
             }
