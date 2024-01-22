@@ -5,13 +5,16 @@
 
     export abstract class SVGBasedHighlightingVisualization extends HighlightingVisualization {
 
+        private readonly zoomMinFactor = 0.1;
+        private readonly zoomMaxFactor = 10;
+
         protected plot: d3.Selection<SVGSVGElement, unknown, null, undefined>;
         protected svgWidth: number;
         protected svgHeight: number;
-        protected zoomFactor: number = 1;
-        protected isDragging: boolean = false;
-        protected dragStart : {x : number, y : number} = {x : 0, y : 0};
-        protected translation : {x : number, y : number} = {x : 0, y : 0};
+        private zoomFactor: number = 1;
+        private isDragging: boolean = false;
+        private dragStart : {x : number, y : number} = {x : 0, y : 0};
+        private translation : {x : number, y : number} = {x : 0, y : 0};
     
         constructor(viewport: HTMLElement, highlightableIds: string[], title: string, colorSelectable: string, colorUnselectable: string, colorBackground: string) {
             super(highlightableIds, title, colorSelectable, colorUnselectable, colorBackground);
@@ -22,7 +25,7 @@
                 .attr("height", this.svgHeight);
             viewport.addEventListener("wheel", (event) => {
                 event.preventDefault();
-                this.zoomFactor *= 1 + -event.deltaY / 1000;
+                this.zoomFactor = Math.max(this.zoomMinFactor, Math.min(this.zoomMaxFactor, this.zoomFactor * (1 + -event.deltaY / 1000)));
                 this.plot.attr("transform", "translate(" + this.translation.x + "," + this.translation.y + ") scale(" + this.zoomFactor + ")");
             });
             viewport.addEventListener("mousedown", (event) => {
