@@ -42,6 +42,10 @@ export class TraceLinkVisualization implements Buttoned, TraceLinkListener {
         }   
     }
 
+    reportClosed(index : number) : void {
+        // Do nothing if state has not changed, if it has changed, reportStateChanged will be called anyway
+    }
+
     getButtons(): UIButton[] {
         return [];
     }

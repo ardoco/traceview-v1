@@ -1,7 +1,9 @@
 import * as d3 from "d3";
 import { HighlightingVisualization } from "./highlightingVisualization";
-import { UMLBase, UMLComponent, UMLInterface } from "./uml";
-import { ACMPackage, CodeModel } from "./acmClasses";
+import { UMLBase, UMLComponent, UMLInterface } from "../uml";
+import { ACMPackage, CodeModel } from "../acmClasses";
+import { Config } from "../config";
+import { SVGBasedHighlightingVisualization } from "./svgbasedHighlightingVisualization";
 
 interface Node extends d3.SimulationNodeDatum {
     id: string;
@@ -15,14 +17,13 @@ interface Edge extends d3.SimulationLinkDatum<Node> {
     label: string;
 }
 
-export class CodeModelTreeVisualization extends HighlightingVisualization {
+export class CodeModelTreeVisualization extends SVGBasedHighlightingVisualization {
 
-    protected plot : d3.Selection<SVGSVGElement, unknown, null, undefined>
     protected nodeIdRemapping : Map<string, string>;
     protected codeModel : CodeModel;
 
     constructor(viewport : HTMLElement, codeModel : CodeModel, highlightableIds: string[], colorSelectable : string, colorNotSelectable : string, backgroundColor : string) {
-        super(highlightableIds, colorSelectable, colorNotSelectable, backgroundColor);
+        super(viewport,highlightableIds, Config.CODEVIS_TITLE, colorSelectable, colorNotSelectable, backgroundColor);
         this.codeModel = codeModel;
         const scale = 2;
         const treeScale = 0.5;
@@ -41,7 +42,6 @@ export class CodeModelTreeVisualization extends HighlightingVisualization {
         const root: d3.HierarchyNode<Node> = stratify(nodes);
         const width = scale * viewport.clientWidth;
         const height = scale * viewport.clientHeight;
-        this.plot = d3.select(viewport).append("svg").attr("width", width).attr("height", height);
         viewport.scrollTop = treeScale / 4; // TODO 
         (viewport.firstChild as HTMLElement).style.backgroundColor = this.colorBackground;
         const treeLayout = d3.tree().size([treeScale *width, treeScale * height]);
@@ -69,6 +69,7 @@ export class CodeModelTreeVisualization extends HighlightingVisualization {
             .enter().append('circle')
             .attr('class', 'node')
             .attr('r', (d :any) => this.getNodeStyle(d.data).nodeSize)
+            .attr("nodeSize", (d :any) => this.getNodeStyle(d.data).nodeSize)
             .attr('fill', (d : any) => this.getNodeStyle(d.data).color)
             .attr('cx', d => d.y)
             .attr('cy', d => d.x)
@@ -81,8 +82,8 @@ export class CodeModelTreeVisualization extends HighlightingVisualization {
             .data(tree.descendants())
             .enter().append('text')
             .attr('class', 'node-label')
-            .attr('x', (d : any)=> d.y + this.getNodeStyle(d.data).fontSize / 2)
-            .attr('y', (d : any) => d.x - this.getNodeStyle(d.data).fontSize / 4)
+            .attr('x', (d : any)=> d.y + this.getNodeStyle(d.data).offsetX)
+            .attr('y', (d : any) => d.x - this.getNodeStyle(d.data).offsetY)
             .text(d => (d.data as any).isPackage ? (d.data as any).label : "")
             .attr("fill", (d) => this.idIsHighlightable((d as any).id) ? this.colorSelectable : this.colorNotSelectable)
             .attr('font-size', (d : any) => this.getNodeStyle(d.data).fontSize)
@@ -106,14 +107,25 @@ export class CodeModelTreeVisualization extends HighlightingVisualization {
             .attr('fill', this.colorSelectable);
     }
 
+    protected setElementsHighlightable(ids: string[]): void {
+        console.log("change to unhighlightable");
+    }
+    protected setElementsNotHighlightable(ids: string[]): void {
+        console.log("change to highlightable");
+    }
+
     private onClick(id : string) : void {      
         this.toggleHighlight(id);
     }
 
-    private getNodeStyle(node : Node) : {fontSize : number, color : string, nodeSize : number} {
-        return {fontSize : node.isPackage ? 16 : 8,
+    private getNodeStyle(node : Node) : {fontSize : number, color : string, nodeSize : number, offsetX : number, offsetY : number} {
+        const fontSize = node.isPackage ? 16 : 8;
+        return {fontSize : fontSize,
             color : this.idIsHighlightable(node.id) ? this.colorSelectable : this.colorNotSelectable,
-            nodeSize : node.isPackage ? 5 : 2};
+            nodeSize : node.isPackage ? 5 : 2,
+            offsetX : node.isPackage ? fontSize / 2  : fontSize / 2,
+            offsetY : node.isPackage ? fontSize / 4  : 0
+        };
     }
 
     public getName(id: string): string {

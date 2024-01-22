@@ -1,8 +1,9 @@
-import { Buttoned, UIButton } from "./abstractUI";
+import { Buttoned, UIButton } from "../abstractUI";
 
 export interface HighlightingListener {
     shouldBeHighlighted(id : string) : void;
     shouldBeUnhighlighted(id : string) : void;
+    shouldClose() : void;
 }
 
 export interface HighlightingSubject {
@@ -14,14 +15,16 @@ export interface HighlightingSubject {
 export abstract class HighlightingVisualization implements HighlightingSubject, Buttoned {
 
     private highlightingListeners : HighlightingListener[];
-    protected currentlyHighlighted : Map<string,boolean>;
+    private currentlyHighlighted : Map<string,boolean>;
+    private readonly title : string;
 
     protected colorSelectable : string;
     protected colorNotSelectable : string;
     protected colorBackground : string;
 
-    constructor(highlightableIds : string[], colorSelctable : string, colorUnselectable : string, colorBackground : string) {
+    constructor(highlightableIds : string[], title : string, colorSelctable : string, colorUnselectable : string, colorBackground : string) {
         this.highlightingListeners = [];
+        this.title = title;
         this.currentlyHighlighted = new Map<string,boolean>(highlightableIds.map((id) => [id,false]));
         this.colorSelectable = colorSelctable;
         this.colorNotSelectable = colorUnselectable;
@@ -30,11 +33,24 @@ export abstract class HighlightingVisualization implements HighlightingSubject, 
 
     protected abstract highlightElement(id: string, color : string): void;
     protected abstract unhighlightElement(id: string): void;
+    protected abstract setElementsHighlightable(ids : string[]) : void;
+    protected abstract setElementsNotHighlightable(ids : string[]) : void;
 
     public abstract getName(id : string) : string;
 
+    public getTitle(): string {
+        return this.title;
+    }
+
     getButtons(): UIButton[] {
-        return [new UIButton(UIButton.SYMBOL_REFRESH, () => {this.unhighlightAll(); return true;})];
+        return [new UIButton(UIButton.SYMBOL_REFRESH, "Clear Highlighting", () => {this.unhighlightAll(); return true;}), new UIButton(UIButton.SYMBOL_CLOSE, "Close", () => {this.shouldClose(); return true;})];
+    }
+
+    shouldClose(): void {
+        console.log("CLOSE " + this.getTitle() + " " + this.highlightingListeners.length)
+        for (let listener of this.highlightingListeners) {
+            listener.shouldClose();
+        }
     }
 
     unhighlightAll() : void {
@@ -73,5 +89,27 @@ export abstract class HighlightingVisualization implements HighlightingSubject, 
 
     protected idIsHighlightable(id : string) : boolean {
         return this.currentlyHighlighted.has(id);
+    }
+
+    public setHighlightable(ids : string[]) : void {
+        const idsToChange = ids.filter((id) => !this.idIsHighlightable(id));
+        console.log(this.getTitle() + " Setting highlightable: " + ids + "\njk" + idsToChange);
+        this.setElementsNotHighlightable(idsToChange);
+        for (let id of idsToChange) {
+            this.currentlyHighlighted.set(id, false);
+        }
+    }
+
+    public clearHighlightability() : void {
+        this.setElementsHighlightable(Array.from(this.currentlyHighlighted.keys()));
+        this.currentlyHighlighted.clear();
+    }
+
+    public setUnhighlightable(ids : string[]) : void {
+        const idsToChange = ids.filter((id) => this.idIsHighlightable(id));
+        this.setElementsHighlightable(idsToChange);
+        for (let id of idsToChange) {
+            this.currentlyHighlighted.delete(id);
+        }
     }
 }

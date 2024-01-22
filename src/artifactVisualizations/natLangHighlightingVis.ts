@@ -1,6 +1,7 @@
-import { NLSentence } from './classes';
+import { NLSentence } from '../classes';
 import { HighlightingVisualization} from './highlightingVisualization';
-import { UIButton } from './abstractUI';
+import { UIButton } from '../abstractUI';
+import { Config } from '../config';
 
 export class NLHighlightingVisualization extends HighlightingVisualization {
 
@@ -13,7 +14,7 @@ export class NLHighlightingVisualization extends HighlightingVisualization {
     protected hideableRows : Map<string,HTMLElement> = new Map<string,HTMLElement>();
 
     constructor(viewport : HTMLElement, sentences : NLSentence[], highlightableIds : string[], colorSelectable : string, colorNotSelectable : string, backgroundColor : string) {
-        super(highlightableIds, colorSelectable, colorNotSelectable, backgroundColor);
+        super(highlightableIds, Config.NLVIS_TITLE, colorSelectable, colorNotSelectable, backgroundColor);
         this.showUnselectable = true;
         this.visualizedArtifacts = new Map<string,NLSentence>();
         this.artifactVisualizations = new Map<string,HTMLElement>();
@@ -34,7 +35,7 @@ export class NLHighlightingVisualization extends HighlightingVisualization {
             rowDiv.classList.add('sentence-item-row');
             artifactDiv.setAttribute('id', artifact.getIdentifier());
             artifactDiv.classList.add('sentence-item');
-            if (this.currentlyHighlighted.has(artifact.getIdentifier())) {
+            if (this.idIsHighlightable(artifact.getIdentifier())) {
                 artifactDiv.style.cursor = "pointer";
                 artifactDiv.addEventListener('mouseover', () => artifactDiv.style.backgroundColor = "lightgrey");
                 artifactDiv.addEventListener('mouseout', () => artifactDiv.style.backgroundColor = "white");
@@ -49,7 +50,6 @@ export class NLHighlightingVisualization extends HighlightingVisualization {
             if (!highlightableIds.includes(artifact.getIdentifier())) {
                 this.hideableRows.set(artifact.getIdentifier(), rowDiv);
             }
-            this.currentlyHighlighted.set(artifact.getIdentifier(), false);
             artifactDiv.addEventListener('click', () => {
                 this.toggleHighlight(artifact.getIdentifier());
             });
@@ -61,14 +61,10 @@ export class NLHighlightingVisualization extends HighlightingVisualization {
     }
     getButtons(): UIButton[] {
         const buttons : UIButton[] = [
-            new UIButton("👁", () => {
+            new UIButton("👁", "Show/Hide Unhighlightable Sentences", () => {
                 this.showUnselectable = !this.showUnselectable;
                 for (let id of this.hideableRows.keys()) {
-                    if (this.showUnselectable) {
-                        this.hideableRows.get(id)!.style.display = "flex";
-                    } else {
-                        this.hideableRows.get(id)!.style.display = "none";
-                    }
+                    this.hideableRows.get(id)!.style.display = this.showUnselectable ? "flex" : "none";
                 }
                 return this.showUnselectable;
             }, true, this.showUnselectable)
@@ -85,7 +81,23 @@ export class NLHighlightingVisualization extends HighlightingVisualization {
         this.artifactVisualizations.get(id)!.style.color = this.colorSelectable;
     }
 
+    protected setElementsHighlightable(ids: string[]): void {
+        for (let id of ids) {
+            if (this.artifactVisualizations.has(id)) {
+                this.artifactVisualizations.get(id)!.style.color = this.colorNotSelectable;
+            }
+        }
+    }
+
+    protected setElementsNotHighlightable(ids: string[]): void {
+        for (let id of ids) {
+            if (this.artifactVisualizations.has(id)) {
+                this.artifactVisualizations.get(id)!.style.color = this.colorSelectable;
+            }
+        }
+    }
+
     public getName(id: string): string {
-        return id + ".Line";
+        return id + ".Sentence";
     }
 }

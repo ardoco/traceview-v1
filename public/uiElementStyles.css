@@ -1,0 +1,109 @@
+.generic-visible-panel {
+    border: 1px solid black;
+}
+
+.app-header {
+    background-color: rgb(250,250,250);
+    height: 5%;
+    border-bottom: 1px solid black;
+    display: flex;
+    align-items: center;
+    justify-content: left;
+    font-size: 50px;
+    padding-left: 1%;
+    user-select: none;
+    font-weight: bold;
+    text-shadow: 1px 1px 1px #000000;
+}
+
+.popup-background {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.75);
+    position: fixed;
+    z-index: 999;
+}
+
+.cradlePopup {
+    width: 50%;
+    height: 50%;
+    background-color: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    border: 1px solid black;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+}
+
+.cradlePopup-bigButton {
+    margin-top: auto;
+    margin-bottom: 2.5%;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    user-select: none;
+    cursor: pointer;
+    border: 1px solid black;
+}
+
+.cradlePopup-entry {
+    width: 100%;
+    padding-left: 10%;
+    padding-right: 10%;
+    border-top: 1px solid black;
+    user-select: none;
+    display: flex;
+    align-items: center;
+}
+
+.cradlePopup-entry-text {
+    width : 50%;
+    height : 100%;
+    display : flex;
+    align-items : center;
+    user-select: none;
+}
+
+.cradlePopup-fileChute {
+    width : 50%;
+    height : 20%;
+    margin-top: 2.5%;
+    margin-bottom: 2.5%;
+    margin-left: auto;
+    margin-right: auto;
+    display : flex;
+    flex-direction : column;
+    justify-content : center;
+    align-items : center;
+    user-select: none;
+    cursor: pointer;
+    text-align: center;
+    border: 1px solid black;
+}
+
+.split-vis-half-container {
+    display: inline-block;
+    justify-content: center;
+    border: 1px solid black; 
+    flex-direction: column;
+    min-width: 5%;
+    min-height: 5%;
+    padding-bottom: 1px;
+}
+
+.resizer-handle {
+    height: 90%;
+    width: 2%;
+    cursor: col-resize;
+    user-select: none;
+    margin-left: 0.25%;
+    margin-right: 0.25%;
+    border: 1px solid black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }

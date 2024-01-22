@@ -1,11 +1,8 @@
-import { NLSentence, TraceabilityLink, } from './classes';
+import { NLSentence, } from './classes';
 import { parseNLTXT, parseTraceLinksFromCSV, parseUML } from './parse';
 import { parseCodeFromACM } from './parseACM';
-import { SplitVisualization } from './splitVis';
-import { addFileInputPlaceholder, addPlaceholder } from './ui';
-import { UMLBase } from './uml';
+import { Application } from './application';
 import { Config } from './config';
-import { CodeModel } from './acmClasses';
 import { CountingColorSupplier } from './colorSupplier';
 import { MediationTraceabilityLink } from './visualizationMediator';
 
@@ -25,8 +22,8 @@ async function load(url: string): Promise<string> {
 
 async function init() {
   const top = document.getElementById('top')!;
+  top.classList.add("app-header");
   top.innerHTML = "";
-  top.style.textShadow = "1px 1px 1px #000000";
   const title = "Traceability Links";
   const highlightCount = 3;
   const colorSupplier = new CountingColorSupplier(title.length);
@@ -56,7 +53,7 @@ async function init() {
     parseTraceLinksFromCSV(tlUmlToCode).map((link) => new MediationTraceabilityLink(link.source, truncateId(link.target), 1, 2)),
     parseTraceLinksFromCSV(tlSentencesCode).map((link) => new MediationTraceabilityLink(link.source, truncateId(link.target), 0, 2))
   ].reduce((a,b) => a.concat(b),[]);
-  const totalVis : SplitVisualization = new SplitVisualization(middle,sentences,umlObjects,codeModel, totalTraceLinks,() => {});
+  const app : Application = new Application(middle,[await load(urlPrefix + "text_2020/teastore.txt"), await load(urlPrefix + "model_2020/uml/teastore.uml"), await load(urlPrefix + "model_2022/code/codeModel.acm")], totalTraceLinks,() => {});
 }
 
 document.addEventListener("DOMContentLoaded", () => {

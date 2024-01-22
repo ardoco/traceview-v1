@@ -5,23 +5,8 @@ body, html {
     font-family: 'Inter', sans-serif;
 }
 
-#top, #middle, #bottom {
+#top, #middle {
     width: 100%;
-}
-
-#top {
-    background-color: rgb(250,250,250);
-    height: 5%;
-    border-bottom: 1px solid black;
-    display: flex;
-    align-items: center;
-    justify-content: left;
-    font-size: 50px;
-    padding-left: 1%;
-    user-select: none;
-    font-family: Dancing Script, cursive;
-    font-weight: bold;
-    
 }
 
 .file-input-container {
@@ -57,7 +42,6 @@ body, html {
 .uiBigRow {
     display: flex;
     flex-direction: row;
-    justify-content: center;
     align-items: center;
     text-align: center;
 }
@@ -101,13 +85,6 @@ body, html {
 
 .uml-node {
     user-select: none;
-}
-
-.split-vis-half-container {
-    display: inline-block;
-    justify-content: center;
-    border: 1px solid black; 
-    flex-direction: column;
 }
 
 .split-vis-half-header {

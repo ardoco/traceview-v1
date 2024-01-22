@@ -8,4 +8,10 @@ export class Config {
     public static readonly PREFERENCE_COLOR_MAIN_SELECTED = "rgb(200,200,200)";
     public static readonly PREFERENCE_COLOR_ALMOST_MAIN = "rgb(240,240,240)";
     public static readonly PREFERENCE_COLOR_BACKGROUND = "rgb(200,200,200)";
+
+    public static readonly EMPTY = "-";
+
+    public static readonly NLVIS_TITLE = "S.A. Documentation";
+    public static readonly UMLVIS_TITLE = "UML";
+    public static readonly CODEVIS_TITLE = "Code Model";
 }
