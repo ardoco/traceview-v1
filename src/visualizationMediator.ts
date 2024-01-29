@@ -1,45 +1,24 @@
 import { HighlightingListener } from "./artifactVisualizations/highlightingVisualization";
 import { HighlightingVisualization } from "./artifactVisualizations/highlightingVisualization";
-import { IIdentifiable, TraceabilityLink } from "./classes";
+import { TraceabilityLink } from "./classes";
 import { ColorSupplier } from "./colorSupplier";
-import { active } from "d3";
+import { MediationTraceabilityLink } from "./concepts/mediationTraceLink";
 
-export interface TraceLinkListener {
+export interface TraceLinkListener {  
     reportStateChanged(links : TraceabilityLink[], colors : string[], names : string[][]) : void;
     reportClosed(index : number) : void;
 }
 
-
-export class MediationTraceabilityLink extends TraceabilityLink {
-    sourceVisIndex : number;
-    targetVisIndex : number;
-
-    constructor(source : string, target : string, sourceVisIndex : number, targetVisIndex : number) {
-        super(source, target);
-        this.sourceVisIndex = sourceVisIndex;
-        this.targetVisIndex = targetVisIndex;
-    }
-
-    reversed() : MediationTraceabilityLink {
-        return new MediationTraceabilityLink(this.target, this.source, this.targetVisIndex, this.sourceVisIndex);
-    }
-}
-
 export class VisualizationMediator {
 
-    protected traceLinks : MediationTraceabilityLink[];
-    protected visualizations : HighlightingVisualization[];
+    protected traceLinks : MediationTraceabilityLink[] = [];
+    protected visualizations : HighlightingVisualization[] = [];
     protected colorSupplier : ColorSupplier;
-    protected activeLinks : MediationTraceabilityLink[];
-    protected lastPrimaryVisualizationIndex : number;
-    protected listeners : TraceLinkListener[];
+    protected activeLinks : MediationTraceabilityLink[] = [];
+    protected lastPrimaryVisualizationIndex : number = -1;
+    protected listeners : TraceLinkListener[] = [];
 
     constructor(colorSupplier : ColorSupplier) {
-        this.listeners = [];
-        this.activeLinks = [];
-        this.traceLinks = [];
-        this.lastPrimaryVisualizationIndex = 0;
-        this.visualizations = [];
         this.colorSupplier = colorSupplier;
     }
 
@@ -88,7 +67,6 @@ export class VisualizationMediator {
 
     private ensurePrimaryConsistency(sourceVisIndex : number) : void {
         if (this.lastPrimaryVisualizationIndex != sourceVisIndex) {
-            console.log("primary visualization changed");
             this.lastPrimaryVisualizationIndex = sourceVisIndex;
             this.clearDrawnHighlighting();
             this.activeLinks = [];
@@ -119,7 +97,6 @@ export class VisualizationMediator {
     }
         
     public removeVisualization(index : number) : void {
-        console.log("Removing visualization " + index);
         function updateTraceLinks(traceLinks : MediationTraceabilityLink[], index : number) : MediationTraceabilityLink[] {
             return traceLinks.filter((link) => link.sourceVisIndex != index && link.targetVisIndex != index)
                 .map((link) => link.sourceVisIndex > index ? new MediationTraceabilityLink(link.source, link.target, link.sourceVisIndex - 1, link.targetVisIndex) : link);
@@ -151,7 +128,6 @@ export class VisualizationMediator {
         const removeVisualization = (index  : number) : void => {
             this.removeVisualization(index);
         }
-        console.log("Adding visualization " + index);
         visualization.addHighlightingListener(new class implements HighlightingListener {
             shouldBeHighlighted(id: string): void {
                handleHighlight(index, id);
@@ -160,7 +136,6 @@ export class VisualizationMediator {
                 handleUnhighlight(index, id);
             }
             shouldClose(): void {
-                console.log("Visualization " + index + " should close");
                 removeVisualization(index);
             }
         });

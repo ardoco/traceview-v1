@@ -1,5 +1,8 @@
-    import * as d3 from 'd3';
-    import { HighlightingVisualization } from "./highlightingVisualization";
+import * as d3 from 'd3';
+import { HighlightingVisualization } from "./highlightingVisualization";
+import { Config } from '../config';
+import { UIButton } from '../abstractUI';
+import { Style } from '../style';
 
 
 
@@ -16,10 +19,11 @@
         private dragStart : {x : number, y : number} = {x : 0, y : 0};
         private translation : {x : number, y : number} = {x : 0, y : 0};
     
-        constructor(viewport: HTMLElement, highlightableIds: string[], title: string, colorSelectable: string, colorUnselectable: string, colorBackground: string) {
-            super(highlightableIds, title, colorSelectable, colorUnselectable, colorBackground);
-            this.svgWidth = 2 * viewport.clientWidth;
-            this.svgHeight = 2 * viewport.clientHeight;
+        constructor(viewport: HTMLElement, width : number, height : number, highlightableIds: string[], title: string, style : Style) {
+            super(highlightableIds, title, style);
+            this.svgWidth = width;
+            this.svgHeight = height;
+            viewport.style.backgroundColor = this.style.getPaperColor();
             this.plot = d3.select(viewport).append("svg")
                 .attr("width", this.svgWidth)
                 .attr("height", this.svgHeight);
@@ -45,5 +49,26 @@
                     this.plot.attr("transform", "translate(" + this.translation.x + "," + this.translation.y + ") scale(" + this.zoomFactor + ")");
                 }
             });
+        }
+
+        protected setZoomFactor(zoomFactor : number) {
+            this.zoomFactor = zoomFactor;
+            this.plot.attr("transform", "translate(" + this.translation.x + "," + this.translation.y + ") scale(" + this.zoomFactor + ")");
+        }
+
+        protected setTranslation(translation : {x : number, y : number}) {
+            this.translation = translation;
+            this.plot.attr("transform", "translate(" + this.translation.x + "," + this.translation.y + ") scale(" + this.zoomFactor + ")");
+        }
+
+        protected resetZoomAndPan() {
+            this.zoomFactor = 1;
+            this.translation = {x : 0, y : 0};
+            this.plot.attr("transform", "translate(" + this.translation.x + "," + this.translation.y + ") scale(" + this.zoomFactor + ")");
+        }
+
+        getButtons(): UIButton[] {
+            const superButtons = super.getButtons();
+            return [new UIButton(UIButton.SYMBOL_REFRESH, "Reset Zoom And Pan",() => {this.resetZoomAndPan();return true;})].concat(super.getButtons());
         }
     }

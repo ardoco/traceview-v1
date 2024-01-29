@@ -1,10 +1,11 @@
-import { NLSentence, } from './classes';
-import { parseNLTXT, parseTraceLinksFromCSV, parseUML } from './parse';
-import { parseCodeFromACM } from './parseACM';
-import { Application } from './application';
+import { parseTraceLinksFromCSV, parseUML } from './parse/parse';
+import { Application } from './app/application';
 import { Config } from './config';
 import { CountingColorSupplier } from './colorSupplier';
-import { MediationTraceabilityLink } from './visualizationMediator';
+import { MediationTraceabilityLink } from './concepts/mediationTraceLink';
+import { fabricateFileManagerPanelButton } from './ui/fileManagerPanel';
+import { FileManager } from './app/fileManager';
+import { Style } from './style';
 
 async function load(url: string): Promise<string> {
   return fetch(url)
@@ -20,49 +21,60 @@ async function load(url: string): Promise<string> {
     });
 }
 
-async function init() {
-  const top = document.getElementById('top')!;
-  top.classList.add("app-header");
-  top.innerHTML = "";
+function writeTitle(titlePanel : HTMLElement) {
   const title = "Traceability Links";
   const highlightCount = 3;
   const colorSupplier = new CountingColorSupplier(title.length);
   for (let i = 0; i < title.length; i++) {
     const letterDiv = document.createElement('span');
     letterDiv.appendChild(document.createTextNode(title[i]));
-    letterDiv.style.color = i % highlightCount == 0 ? colorSupplier.reserveColor("" + i) : Config.PREFERENCE_COLOR_SELECTABLE;
+    letterDiv.style.color = i % highlightCount == 0 ? colorSupplier.reserveColor("" + i) : Application.STYLE.getSelectableTextColor();
     letterDiv.style.marginRight = "0px";
-    top.appendChild(letterDiv);
+    titlePanel.appendChild(letterDiv);
   }
+}
+
+
+function initUI() {
+  const top = document.getElementById('top')!;
+  top.style.height = "60px";
+  top.classList.add("app-header");
+  const titlePanel = document.createElement('div');
+  const buttonPanel = document.createElement('div');
+  top.appendChild(titlePanel);
+  top.appendChild(buttonPanel);
+  titlePanel.style.height = "100%";
+  titlePanel.style.width = "70%";
+  buttonPanel.style.height = "100%";
+  buttonPanel.style.width = "30%";
+  top.style.backgroundColor = Application.STYLE.getPaperColor();
+  writeTitle(titlePanel);
+  const fileManager = new FileManager();
+  fabricateFileManagerPanelButton(buttonPanel, fileManager, Application.STYLE);
+  return fileManager;
+}
+
+async function init(fileManager : FileManager) {
+  fileManager.addFile("Text", await load("https://raw.githubusercontent.com/ArDoCo/Benchmark/main/teastore/text_2020/teastore.txt"));
+  fileManager.addFile("UML", await load("https://raw.githubusercontent.com/ArDoCo/Benchmark/main/teastore/model_2020/uml/teastore.uml"));
   const middle = document.getElementById('middle')!;
+  middle.style.backgroundColor = Application.STYLE.getBackgroundColor();
   middle.style.height = "95%";
-  middle.style.backgroundColor = Config.PREFERENCE_COLOR_BACKGROUND;
   const urlPrefix = "https://raw.githubusercontent.com/ArDoCo/Benchmark/main/teastore/";
-  const tlSentencesToUml = await load(urlPrefix + "/goldstandards/goldstandard_sad_2020-sam_2020.csv");
-  const tlSentencesCode = await load(urlPrefix + "goldstandards/goldstandard_sad_2020-code_2022.csv");
-  const tlUmlToCode = await load(urlPrefix + "goldstandards/goldstandard_sam_2020-code_2022.csv");
-  let sentences : NLSentence[] = parseNLTXT(await load(urlPrefix + "text_2020/teastore.txt"));
-  let umlObjects = parseUML(await load(urlPrefix + "model_2020/uml/teastore.uml"));
-  let codeModel = parseCodeFromACM(await load(urlPrefix + "model_2022/code/codeModel.acm"));
   function truncateId (id : string) : string {
     const sep = "tools/descartes/"; // TODO: don't hardcode this
-    return id.indexOf(sep) == -1 ? id : id.substring(id.indexOf(sep));
+    return id.indexOf(sep) == -1 ? id : id.substring(id.indexOf(sep));  
   }
   const totalTraceLinks = [
-    parseTraceLinksFromCSV(tlSentencesToUml).map((link) => new MediationTraceabilityLink(link.target, link.source, 0, 1)),
-    parseTraceLinksFromCSV(tlUmlToCode).map((link) => new MediationTraceabilityLink(link.source, truncateId(link.target), 1, 2)),
-    parseTraceLinksFromCSV(tlSentencesCode).map((link) => new MediationTraceabilityLink(link.source, truncateId(link.target), 0, 2))
+    parseTraceLinksFromCSV(await load(urlPrefix + "/goldstandards/goldstandard_sad_2020-sam_2020.csv")).map((link) => new MediationTraceabilityLink(link.target, link.source, 0, 1)),
+    parseTraceLinksFromCSV(await load(urlPrefix + "goldstandards/goldstandard_sam_2020-code_2022.csv")).map((link) => new MediationTraceabilityLink(link.source, truncateId(link.target), 1, 2)),
+    parseTraceLinksFromCSV(await load(urlPrefix + "goldstandards/goldstandard_sad_2020-code_2022.csv")).map((link) => new MediationTraceabilityLink(link.source, truncateId(link.target), 0, 2))
   ].reduce((a,b) => a.concat(b),[]);
-  const app : Application = new Application(middle,[await load(urlPrefix + "text_2020/teastore.txt"), await load(urlPrefix + "model_2020/uml/teastore.uml"), await load(urlPrefix + "model_2022/code/codeModel.acm")], totalTraceLinks,() => {});
+  const app : Application = new Application(middle,fileManager,[
+    await load(urlPrefix + "text_2020/teastore.txt"), await load(urlPrefix + "model_2020/uml/teastore.uml"), await load(urlPrefix + "model_2022/code/codeModel.acm")]
+    , totalTraceLinks,Application.STYLE); 
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  /*
-  for (let fileInputid of ['leftInput', 'rightInput', "traceLinkInput"]) {
-    const fileInput = document.getElementById(fileInputid) as HTMLInputElement;
-    fileInput.value = "";
-  }
-  */
-  init();
-  // iterate over all html elements on the page
+  init(initUI());
 });

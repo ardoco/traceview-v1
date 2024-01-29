@@ -1,11 +1,11 @@
 import * as d3 from 'd3';
 
-import { UMLBase, UMLComponent, UMLInterface } from '../uml';
+import { UMLBase, UMLComponent, UMLInterface } from '../artifacts/uml';
 import { getTextWidth } from '../utils';
-import { HighlightingVisualization} from './highlightingVisualization';
 import { Config } from '../config';
 import { UIButton } from '../abstractUI';
 import { SVGBasedHighlightingVisualization } from './svgbasedHighlightingVisualization';
+import { Style } from '../style';
 
 const EDGE_LABEL_SCALE = 0.7;
 const FONT_SIZE = 15;
@@ -34,8 +34,8 @@ export class UMLHighlightingVisualization extends SVGBasedHighlightingVisualizat
     protected secondEdgesSelection : d3.Selection<SVGLineElement, Edge, SVGSVGElement, unknown>;
     protected nodes : Node[]
 
-    constructor(viewport : HTMLElement, classes : UMLBase[], highlightableIds: string[], color : string, colorNotSelectable : string, backgroundColor : string) {
-        super(viewport,highlightableIds,Config.UMLVIS_TITLE,color, colorNotSelectable, backgroundColor);
+    constructor(viewport : HTMLElement, classes : UMLBase[], highlightableIds: string[], style : Style) {
+        super(viewport,2000,2000, highlightableIds,Config.UMLVIS_TITLE,style);
         this.showEdgeLabels = true;
         this.dragFrozen = true;
         const components = classes.filter((c) => c instanceof UMLComponent).map((c) => c as UMLComponent);
@@ -57,7 +57,7 @@ export class UMLHighlightingVisualization extends SVGBasedHighlightingVisualizat
         const links = Array.from(edgeSet.values());
         viewport.scrollLeft = this.svgWidth / 4;
         viewport.scrollTop = this.svgHeight / 4;
-        (viewport.firstChild as HTMLElement).style.backgroundColor = this.colorBackground;
+        (viewport.firstChild as HTMLElement).style.backgroundColor = this.style.getPaperColor();
         this.secretlyMakeMarkers();
         this.simulation = d3.forceSimulation(this.nodes)
             .force('link', d3.forceLink(links).id(d => (d as any).id).distance(100))
@@ -95,7 +95,7 @@ export class UMLHighlightingVisualization extends SVGBasedHighlightingVisualizat
             .enter()
             .append("g")
             .attr("stroke-width", 2)
-            .attr("stroke", this.colorSelectable);
+            .attr("stroke", this.style.getSelectableTextColor());
         this.secondEdgesSelection = linkGroups.append("line");
         this.firstEdgesSelection = linkGroups.append("line").attr("marker-end", "url(#semicircle)");
         const node = this.plot.selectAll<SVGRectElement, Node>("rect")
@@ -106,10 +106,9 @@ export class UMLHighlightingVisualization extends SVGBasedHighlightingVisualizat
             .attr("height", (d) => d.height)
             .attr("rx", 2)
             .attr("ry", 2)
-            .attr("fill", this.colorBackground)
-            .attr("stroke", this.colorSelectable)
+            .attr("fill", this.style.getPaperColor())
+            .attr("stroke", (d : Node) => this.idIsHighlightable(d.id) ? this.style.getSelectableTextColor() : this.style.getNotSelectableTextColor())
             .attr("cursor", (d : Node) => this.idIsHighlightable(d.id) ? "pointer" : "default")
-            .classed("uml-node", true)
             .on("click", (i, d : Node) => this.handleClickOn(d.id))
             .call(rectDrag);
         const labelSelection = this.plot.selectAll<SVGTextElement, Node>("text")
@@ -117,18 +116,19 @@ export class UMLHighlightingVisualization extends SVGBasedHighlightingVisualizat
             .enter()
             .append("text")
             .attr("dy", 5)
-            .attr("dx", 0)
             .attr("text-anchor", "middle")
             .attr("font-size", FONT_SIZE)
-            .attr("stroke", (d : Node) => this.idIsHighlightable(d.id) ? this.colorSelectable : colorNotSelectable)
+            .attr("stroke", (d : Node) => this.idIsHighlightable(d.id) ? this.style.getSelectableTextColor() : this.style.getNotSelectableTextColor())
+            .attr("fill", (d : Node) => this.idIsHighlightable(d.id) ? this.style.getSelectableTextColor() : this.style.getNotSelectableTextColor())
             .attr("cursor", (d : Node) => this.idIsHighlightable(d.id) ? "pointer" : "default")
             .text(d => d.name)
-            .classed("uml-node", true)
+            .style("user-select", "none")
             .on("click  ", (i, d : Node) => this.handleClickOn(d.id))
             .call(labelDrag);
         this.edgeLabels = linkGroups.append("text")
             .text(d => d.label)
-            .attr("stroke", (d : Edge) => this.idIsHighlightable(d.id) ? this.colorSelectable : colorNotSelectable)
+            .attr("stroke", (d : Edge) => this.idIsHighlightable(d.id) ? this.style.getSelectableTextColor() : this.style.getNotSelectableTextColor())
+            .attr("fill", (d : Edge) => this.idIsHighlightable(d.id) ? this.style.getSelectableTextColor() : this.style.getNotSelectableTextColor())
             .attr("font-size", EDGE_LABEL_SCALE * FONT_SIZE)
             .attr("text-anchor", "middle")
             .attr("stroke-dasharray", null)
@@ -205,18 +205,18 @@ export class UMLHighlightingVisualization extends SVGBasedHighlightingVisualizat
     }
 
     protected unhighlightElement(id: string): void {
-        this.setNodeColor(id, this.colorSelectable);
-        this.setEdgeLabelColor(id, this.colorSelectable);
+        this.setNodeColor(id, this.style.getSelectableTextColor());
+        this.setEdgeLabelColor(id, this.style.getSelectableTextColor());
     }
 
     protected setElementsHighlightable(ids: string[]): void {
         for (let id of ids) {
-            this.setNodeColor(id, this.colorNotSelectable);
+            this.setNodeColor(id, this.style.getSelectableTextColor());
         }
     }
     protected setElementsNotHighlightable(ids: string[]): void {
         for (let id of ids) {
-            this.setNodeColor(id, this.colorSelectable);
+            this.setNodeColor(id, this.style.getNotSelectableTextColor());
         }
     }
 
@@ -255,8 +255,13 @@ export class UMLHighlightingVisualization extends SVGBasedHighlightingVisualizat
             const x2 = this.edgeTargetPosition(d).x;
             const y2 = this.edgeTargetPosition(d).y;
             const angle = Math.atan2(y2 - y1, x2 - x1) * (180 / Math.PI);
-            const angleAdjustment = angle > 90 ? angle - 180 : (angle < -90 ? angle + 180 : angle);
-            return "rotate(" + angleAdjustment + "," + ((x1 + x2) / 2) + "," + ((y1 + y2) / 2) + ")";
+            let adjustedAngle = angle;
+            if (angle > 90) {
+                adjustedAngle -= 180;
+            } else if (angle < -90) {
+                adjustedAngle += 180;
+            }
+            return "rotate(" + adjustedAngle + "," + ((x1 + x2) / 2) + "," + ((y1 + y2) / 2) + ")";
         }
     }
 
@@ -273,8 +278,8 @@ export class UMLHighlightingVisualization extends SVGBasedHighlightingVisualizat
             .attr("markerHeight", 50)
             .attr("orient", "auto")
             .append("path")
-            .attr("fill", this.colorBackground)
-            .attr("stroke", this.colorSelectable)
+            .attr("fill", this.style.getPaperColor())
+            .attr("stroke", this.style.getSelectableTextColor())
             .attr('d', semiCirclePath.toString());
         this.plot.append("defs").append("marker")
             .attr("id", "arrowhead")
@@ -285,7 +290,7 @@ export class UMLHighlightingVisualization extends SVGBasedHighlightingVisualizat
             .attr("orient", "auto")
             .append("path")
             .attr("fill", "none")
-            .attr("stroke", this.colorSelectable)
+            .attr("stroke", this.style.getSelectableTextColor())
             .attr("d", "M0,0 L10,5 L0,10");
     }
 }

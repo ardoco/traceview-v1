@@ -4,7 +4,8 @@ export interface Buttoned {
 
 export class UIButton {
 
-    public static readonly SYMBOL_REFRESH = "⟳";
+    public static readonly SYMBOL_REFRESH = "⟲";
+    public static readonly SYMBOL_ERASE = "⌫";
     public static readonly SYMBOL_CLOSE = "✖";
 
     public readonly label : string;
@@ -12,7 +13,7 @@ export class UIButton {
     public readonly isToggle : boolean;
     public readonly startsToggled : boolean;
 
-    constructor(label : string, tooltip : string,onClick : () => boolean, isToggle : boolean = false, startsToggled : boolean = false) {
+    constructor(label : string, tooltip : string, onClick : () => boolean, isToggle : boolean = false, startsToggled : boolean = false) {
         this.label = label;
         this.onClick = onClick;
         this.isToggle = isToggle;

@@ -88,7 +88,6 @@
 .split-vis-half-container {
     display: inline-block;
     justify-content: center;
-    border: 1px solid black; 
     flex-direction: column;
     min-width: 5%;
     min-height: 5%;
@@ -96,14 +95,17 @@
 }
 
 .resizer-handle {
-    height: 90%;
-    width: 2%;
     cursor: col-resize;
     user-select: none;
-    margin-left: 0.25%;
-    margin-right: 0.25%;
     border: 1px solid black;
     display: flex;
     align-items: center;
     justify-content: center;
   }
+
+.appheader-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}

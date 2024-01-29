@@ -1,6 +1,6 @@
 
-import {TraceabilityLink,NLSentence} from "./classes";
-import { UMLComponent,UMLInterface,UMLInterfaceRealization,UMLOperation, UMLBase, UMLUsage } from "./uml";
+import {TraceabilityLink,NLSentence} from "../classes";
+import { UMLComponent,UMLInterface,UMLInterfaceRealization,UMLOperation, UMLBase, UMLUsage } from "../artifacts/uml";
 
 
 export function parseTraceLinksFromCSV(content : string) : TraceabilityLink[] {

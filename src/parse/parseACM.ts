@@ -1,4 +1,4 @@
-import { CodeModel, AbstractACMUnit, ACMClassUnit, ACMControlElement, ACMInterfaceUnit, ACMCodeCompilationUnit, ACMPackage} from "./acmClasses";
+import { CodeModel, AbstractACMUnit, ACMClassUnit, ACMControlElement, ACMInterfaceUnit, ACMCodeCompilationUnit, ACMPackage} from "../acmClasses";
 
 export function parseCodeFromACM(content : string) : CodeModel {
     const json = JSON.parse(content);

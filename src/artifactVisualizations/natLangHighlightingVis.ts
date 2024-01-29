@@ -2,6 +2,7 @@ import { NLSentence } from '../classes';
 import { HighlightingVisualization} from './highlightingVisualization';
 import { UIButton } from '../abstractUI';
 import { Config } from '../config';
+import { Style } from '../style';
 
 export class NLHighlightingVisualization extends HighlightingVisualization {
 
@@ -13,8 +14,8 @@ export class NLHighlightingVisualization extends HighlightingVisualization {
     protected highlightableIds : string[];
     protected hideableRows : Map<string,HTMLElement> = new Map<string,HTMLElement>();
 
-    constructor(viewport : HTMLElement, sentences : NLSentence[], highlightableIds : string[], colorSelectable : string, colorNotSelectable : string, backgroundColor : string) {
-        super(highlightableIds, Config.NLVIS_TITLE, colorSelectable, colorNotSelectable, backgroundColor);
+    constructor(viewport : HTMLElement, sentences : NLSentence[], highlightableIds : string[], style : Style) {
+        super(highlightableIds, Config.NLVIS_TITLE, style);
         this.showUnselectable = true;
         this.visualizedArtifacts = new Map<string,NLSentence>();
         this.artifactVisualizations = new Map<string,HTMLElement>();
@@ -24,7 +25,7 @@ export class NLHighlightingVisualization extends HighlightingVisualization {
             this.visualizedArtifacts.set(artifact.getIdentifier(), artifact);
         } 
         this.viewportDiv = viewport;
-        this.viewportDiv.style.overflow = "auto";
+        this.viewportDiv.style.backgroundColor = this.style.getPaperColor();
         let i : number  = 0;
         for (let artifact of this.visualizedArtifacts.values()) {
             let artifactDiv = document.createElement('div');
@@ -40,7 +41,7 @@ export class NLHighlightingVisualization extends HighlightingVisualization {
                 artifactDiv.addEventListener('mouseover', () => artifactDiv.style.backgroundColor = "lightgrey");
                 artifactDiv.addEventListener('mouseout', () => artifactDiv.style.backgroundColor = "white");
             } else {
-                artifactDiv.style.color = colorNotSelectable;
+                artifactDiv.style.color = this.style.getNotSelectableTextColor();
             }
             artifactDiv.appendChild(document.createTextNode(artifact.getContent()));
             rowDiv.appendChild(rowNumberDiv);
@@ -78,13 +79,13 @@ export class NLHighlightingVisualization extends HighlightingVisualization {
         item.scrollIntoView({behavior: "smooth", block: "center", inline: "nearest"});
     }
     protected unhighlightElement(id: string): void {
-        this.artifactVisualizations.get(id)!.style.color = this.colorSelectable;
+        this.artifactVisualizations.get(id)!.style.color = this.style.getSelectableTextColor();
     }
 
     protected setElementsHighlightable(ids: string[]): void {
         for (let id of ids) {
             if (this.artifactVisualizations.has(id)) {
-                this.artifactVisualizations.get(id)!.style.color = this.colorNotSelectable;
+                this.artifactVisualizations.get(id)!.style.color = this.style.getSelectableTextColor();
             }
         }
     }
@@ -92,7 +93,7 @@ export class NLHighlightingVisualization extends HighlightingVisualization {
     protected setElementsNotHighlightable(ids: string[]): void {
         for (let id of ids) {
             if (this.artifactVisualizations.has(id)) {
-                this.artifactVisualizations.get(id)!.style.color = this.colorSelectable;
+                this.artifactVisualizations.get(id)!.style.color = this.style.getNotSelectableTextColor();
             }
         }
     }

@@ -1,9 +1,10 @@
 import * as d3 from "d3";
 import { HighlightingVisualization } from "./highlightingVisualization";
-import { UMLBase, UMLComponent, UMLInterface } from "../uml";
+import { UMLBase, UMLComponent, UMLInterface } from "../artifacts/uml";
 import { ACMPackage, CodeModel } from "../acmClasses";
 import { Config } from "../config";
 import { SVGBasedHighlightingVisualization } from "./svgbasedHighlightingVisualization";
+import { Style } from "../style";
 
 interface Node extends d3.SimulationNodeDatum {
     id: string;
@@ -22,11 +23,10 @@ export class CodeModelTreeVisualization extends SVGBasedHighlightingVisualizatio
     protected nodeIdRemapping : Map<string, string>;
     protected codeModel : CodeModel;
 
-    constructor(viewport : HTMLElement, codeModel : CodeModel, highlightableIds: string[], colorSelectable : string, colorNotSelectable : string, backgroundColor : string) {
-        super(viewport,highlightableIds, Config.CODEVIS_TITLE, colorSelectable, colorNotSelectable, backgroundColor);
+    constructor(viewport : HTMLElement, codeModel : CodeModel, highlightableIds: string[], style : Style) {
+        super(viewport,2000,2000,highlightableIds, Config.CODEVIS_TITLE, style);
         this.codeModel = codeModel;
-        const scale = 2;
-        const treeScale = 0.5;
+        const treeScale = 0.6;
         const nodes : Node[] = [];
         const edges : Edge[] = [];
         this.nodeIdRemapping = new Map<string, string>();
@@ -40,14 +40,13 @@ export class CodeModelTreeVisualization extends SVGBasedHighlightingVisualizatio
             return edge ? edge.source : null;
         });
         const root: d3.HierarchyNode<Node> = stratify(nodes);
-        const width = scale * viewport.clientWidth;
-        const height = scale * viewport.clientHeight;
-        viewport.scrollTop = treeScale / 4; // TODO 
-        (viewport.firstChild as HTMLElement).style.backgroundColor = this.colorBackground;
-        const treeLayout = d3.tree().size([treeScale *width, treeScale * height]);
+        viewport.scrollTop = this.svgHeight / 4; 
+        viewport.scrollLeft = this.svgWidth / 4;   
+        (viewport.firstChild as HTMLElement).style.backgroundColor = this.style.getPaperColor();
+        const treeLayout = d3.tree().size([treeScale *this.svgWidth, treeScale * this.svgHeight]);
         const tree = treeLayout(root as any);
-        const offsetX = 50;
-        const offsetY = 50;
+        const offsetX = this.svgWidth / 8; // TODO: magic numbers, tree placement looks weird anyway
+        const offsetY = this.svgHeight / 4;
         this.plot.append('g')
             .attr('transform', `translate(${offsetX}, ${offsetY})`)
             .selectAll('.link')
@@ -55,7 +54,7 @@ export class CodeModelTreeVisualization extends SVGBasedHighlightingVisualizatio
             .enter().append('path')
             .attr('class', 'link')
             .attr('fill', 'none')
-            .attr('stroke', colorNotSelectable)
+            .attr('stroke', style.getNotSelectableTextColor())
             .attr('d', d => {
                 const pathGenerator = d3.linkHorizontal()
                     .x(d => (d as any).y)
@@ -85,7 +84,7 @@ export class CodeModelTreeVisualization extends SVGBasedHighlightingVisualizatio
             .attr('x', (d : any)=> d.y + this.getNodeStyle(d.data).offsetX)
             .attr('y', (d : any) => d.x - this.getNodeStyle(d.data).offsetY)
             .text(d => (d.data as any).isPackage ? (d.data as any).label : "")
-            .attr("fill", (d) => this.idIsHighlightable((d as any).id) ? this.colorSelectable : this.colorNotSelectable)
+            .attr("fill", (d) => this.idIsHighlightable((d as any).id) ? this.style.getSelectableTextColor() : this.style.getNotSelectableTextColor())
             .attr('font-size', (d : any) => this.getNodeStyle(d.data).fontSize)
             .style('user-select', 'none');
     }
@@ -100,18 +99,32 @@ export class CodeModelTreeVisualization extends SVGBasedHighlightingVisualizatio
     }
     protected unhighlightElement(id: string): void {
         this.plot.selectAll('.node').filter((d : any) => d.id === id)
-            .attr('fill', this.colorSelectable);
+            .attr('fill', this.style.getSelectableTextColor());
         this.plot.selectAll('.node-label').filter((d : any) => d.id === id)
             .text((d : any) => d.data.isPackage ? d.data.label : "")
             .style('text-shadow', 'none')
-            .attr('fill', this.colorSelectable);
+            .attr('fill', this.style.getSelectableTextColor());
     }
 
     protected setElementsHighlightable(ids: string[]): void {
-        console.log("change to unhighlightable");
+        for (let id of ids) {
+            if (!this.idIsHighlightable(id)) {              
+                this.plot.selectAll('.node').filter((d : any) => d.id === id)
+                    .attr('fill', this.style.getSelectableTextColor());
+                this.plot.selectAll('.node-label').filter((d : any) => d.id === id)
+                    .attr('fill', this.style.getSelectableTextColor());
+            }
+        }
     }
     protected setElementsNotHighlightable(ids: string[]): void {
-        console.log("change to highlightable");
+        for (let id of ids) {
+            if (this.idIsHighlightable(id)) {
+                this.plot.selectAll('.node').filter((d : any) => d.id === id)
+                    .attr('fill', this.style.getNotSelectableTextColor());
+                this.plot.selectAll('.node-label').filter((d : any) => d.id === id)
+                    .attr('fill', this.style.getNotSelectableTextColor());
+            }
+        }
     }
 
     private onClick(id : string) : void {      
@@ -121,7 +134,7 @@ export class CodeModelTreeVisualization extends SVGBasedHighlightingVisualizatio
     private getNodeStyle(node : Node) : {fontSize : number, color : string, nodeSize : number, offsetX : number, offsetY : number} {
         const fontSize = node.isPackage ? 16 : 8;
         return {fontSize : fontSize,
-            color : this.idIsHighlightable(node.id) ? this.colorSelectable : this.colorNotSelectable,
+            color : this.idIsHighlightable(node.id) ? this.style.getSelectableTextColor() : this.style.getNotSelectableTextColor(),
             nodeSize : node.isPackage ? 5 : 2,
             offsetX : node.isPackage ? fontSize / 2  : fontSize / 2,
             offsetY : node.isPackage ? fontSize / 4  : 0

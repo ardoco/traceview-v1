@@ -1,4 +1,4 @@
-import { IIdentifiable } from "./classes";
+import { IIdentifiable } from "../classes";
 
 export abstract class UMLBase implements IIdentifiable {
     protected identifier : string;
