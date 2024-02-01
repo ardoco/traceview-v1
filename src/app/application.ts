@@ -1,7 +1,7 @@
 import { HighlightingVisualization } from "../artifactVisualizations/highlightingVisualization";
 import { CountingColorSupplier } from "../colorSupplier";
 import { TraceabilityLink } from "../classes";
-import { TraceLinkListener, VisualizationMediator } from "../visualizationMediator";
+import { TraceLinkListener, VisualizationMediator } from "./visualizationMediator";
 import { Config } from "../config";
 import { TraceLinkVisualization } from "../artifactVisualizations/traceLinkVisualization";
 import { fabricateNewVisPopupPanel } from "../ui/initVisPopup";
@@ -19,10 +19,9 @@ interface VisTuple {
     title : string;
 }
 
-export class Application implements StyleableUIElement {
+export class Application {
     
-    public static STYLE : Style = Style.NIGHT;
-
+    protected style : Style;
     protected visTuples : VisTuple[] = [];
     protected childrenPanel : HTMLElement;
     protected mediator : VisualizationMediator;
@@ -30,6 +29,7 @@ export class Application implements StyleableUIElement {
     protected fileManager : FileManager;
 
     constructor(parent : HTMLElement, fileManager : FileManager, datas : string[], traceLinks : MediationTraceabilityLink[], style : Style) {
+        this.style = style;
         this.fileManager = fileManager;
         const highlightableIdentifiers = [new Set<string>(), new Set<string>(), new Set<string>()];
         for (let link of traceLinks.filter((link) => link.sourceVisIndex < datas.length && link.targetVisIndex < datas.length)) {
@@ -52,7 +52,7 @@ export class Application implements StyleableUIElement {
         this.childrenPanel.style.width = "100%";
         this.childrenPanel.style.maxHeight = "90%";
         const traceLinkContainer = document.createElement('div');
-        traceLinkContainer.style.marginBottom = "1%";
+        viewport.style.paddingBottom = "1%";
         viewport.appendChild(traceLinkContainer);
         const resizer = new YResizingHandle(viewport, this.childrenPanel, style);
         resizer.setBottomOfHandle(traceLinkContainer);
@@ -60,9 +60,8 @@ export class Application implements StyleableUIElement {
         traceLinkContainer.style.width = "100%";
         traceLinkContainer.style.minHeight = "50px";
         traceLinkContainer.style.maxHeight = "50%";
-        traceLinkContainer.style.backgroundColor = style.getPaperColor();
-        traceLinkContainer.style.border = style.getBorderColor();
         traceLinkContainer.style.margin = "auto";
+        style.applyToContainer(traceLinkContainer);
         UIFactory.fabricateHeader(traceLinkContainer,"40px", "20px", "Trace Links", style);
         const traceLinkPanel = document.createElement('div');
         traceLinkPanel.classList.add("uiBigRow");
@@ -70,28 +69,25 @@ export class Application implements StyleableUIElement {
         traceLinkPanel.style.width = "100%";
         traceLinkContainer.appendChild(traceLinkPanel);
         const linkVis = new TraceLinkVisualization(traceLinkPanel,style, 20);
-        this.fabricatePlusButtonPanel(this.childrenPanel, 0.05, Application.STYLE);
-        this.addVisualizationPanel(this.childrenPanel, getTypeName(0), 0.3,"auto", fabricateVisualization(0,datas[0],[], Application.STYLE));
-        this.addVisualizationPanel(this.childrenPanel, getTypeName(1), 0.3,"hidden", fabricateVisualization(1,datas[1],[], Application.STYLE));
-        this.addVisualizationPanel(this.childrenPanel, getTypeName(2),0.3,"hidden", fabricateVisualization(2,datas[2],[], Application.STYLE));  
+        this.fabricatePlusButtonPanel(this.childrenPanel, 0.05, this.style);
+        this.addVisualizationPanel(this.childrenPanel, getTypeName(0), 0.3, fabricateVisualization(0,[datas[0]],[], this.style));
+        this.addVisualizationPanel(this.childrenPanel, getTypeName(1), 0.3, fabricateVisualization(1,[datas[1]],[], this.style ));
+        //this.addVisualizationPanel(this.childrenPanel, getTypeName(2),0.3, fabricateVisualization(2,datas[2],[], this.style));  
         this.mediator = new VisualizationMediator(new CountingColorSupplier(30));
         for (let i = 0; i < this.visTuples.length; i++) {
             this.mediator.appendVisualization(this.visTuples[i].vis);
         }
         this.mediator.addListener(linkVis);
-        const removeVisualization = (index  : number) : void => {
-            this.removeVisualization(index);
+        const removeVisualization = (id  : number) : void => {
+            this.removeVisualization(id);
         }
         this.mediator.addListener(new class implements TraceLinkListener {
             reportStateChanged(links: TraceabilityLink[], colors: string[], names: string[][]): void {}
-            reportClosed(index: number): void {
-                removeVisualization(index);
+            reportClosed(id: number): void {
+                removeVisualization(id);
             }
         });
-        this.mediator.addTraceLinks(traceLinks);
-    }
-    setStyle(style: Style): void {
-        throw new Error("Method not implemented.");
+        this.mediator.addTraceLinks(traceLinks.filter((link) => link.sourceVisIndex < this.visTuples.length && link.targetVisIndex < this.visTuples.length).map((link) => new MediationTraceabilityLink(link.source, link.target, this.visTuples[link.sourceVisIndex].id, this.visTuples[link.targetVisIndex].id)));
     }
 
     private removeVisualization(id : number) {
@@ -108,17 +104,17 @@ export class Application implements StyleableUIElement {
     }
 
     private addVisualizationPanel(
-        viewport: HTMLElement, name: string, width: number,overflow: string,
+        viewport: HTMLElement, name: string, width: number,
         constructorFunction: (vp: HTMLElement) => HighlightingVisualization) {
         let a = null;
-        const panel = UIFactory.fabricatePanel(viewport, name, width,overflow, (vp2 : HTMLElement) => {
+        const panel = UIFactory.fabricatePanel(viewport, name, width, (vp2 : HTMLElement) => {
             const constructed = constructorFunction(vp2);
             a = constructed;
             return constructed;
-        }, Application.STYLE);
+        }, this.style);
         const maxIndex = this.visTuples.map((tuple : VisTuple) => tuple.id).reduce((a,b) => Math.max(a,b),-1);
-        this.visTuples.push({vis : a!, id : maxIndex + 1, panel : panel, title : name});
-        this.resizeHandles.push(new ResizingHandle(this.childrenPanel, panel, Application.STYLE));
+        this.visTuples.push({vis : a!, id :a!.getID(), panel : panel, title : name});
+        this.resizeHandles.push(new ResizingHandle(this.childrenPanel, panel, this.style));
         if (this.visTuples.length > 1) {
             this.resizeHandles[this.resizeHandles.length-2].setRightOfHandle(panel);
         }
@@ -126,11 +122,10 @@ export class Application implements StyleableUIElement {
 
     private fabricatePlusButtonPanel(viewport : HTMLElement, width : number, style : Style) {
         const container = document.createElement('div');
-        container.style.backgroundColor = style.getPaperColor();
+        style.applyToPanel(container);
         container.style.width = (100*width) + '%';
-        container.style.border = "1px solid black";
-        container.style.flexDirection = "column";
-        container.style.display = "flex";
+        container.style.border = "1px solid " + style.getBorderColor();
+        container.classList.add("initVis-plusButton");
         viewport.appendChild(container);
         container.style.height = container.getBoundingClientRect().width + "px";
         const text = document.createElement('div');
@@ -139,14 +134,13 @@ export class Application implements StyleableUIElement {
         text.style.marginTop = "auto";
         text.style.marginBottom = "auto";
         text.style.userSelect = "none";
-        text.style.color = style.getSelectableTextColor();
         text.appendChild(document.createTextNode("+"));
         container.appendChild(text);
         container.addEventListener('click', () => {
-            fabricateNewVisPopupPanel(this.visTuples.map((tuple) => tuple.vis.getTitle()), (arg: { visTypeIndex: VisualizationType; artifactData: string; outgoingMediationTraceLinks: MediationTraceabilityLink[] }) => {
+            fabricateNewVisPopupPanel(this.visTuples.map((tuple) => tuple.vis.getTitle()), (arg: { visTypeIndex: VisualizationType; artifactData: string[]; outgoingMediationTraceLinks: MediationTraceabilityLink[] }) => {
                 const outgoingLinks = arg.outgoingMediationTraceLinks;
                 console.log("tls: " + outgoingLinks.length);
-                this.addVisualizationPanel(viewport, getTypeName(arg.visTypeIndex ), 0.3,"auto", fabricateVisualization(arg.visTypeIndex,arg.artifactData,outgoingLinks, Application.STYLE));
+                this.addVisualizationPanel(viewport, getTypeName(arg.visTypeIndex ), 0.3, fabricateVisualization(arg.visTypeIndex,arg.artifactData,outgoingLinks, this.style));
                 this.mediator.appendVisualization(this.visTuples[this.visTuples.length-1].vis);
                 this.mediator.addTraceLinks(outgoingLinks);
                 return true;

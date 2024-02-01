@@ -6,6 +6,9 @@ import { MediationTraceabilityLink } from './concepts/mediationTraceLink';
 import { fabricateFileManagerPanelButton } from './ui/fileManagerPanel';
 import { FileManager } from './app/fileManager';
 import { Style } from './style';
+import { parseAABBs } from './parse/parseBBs';
+
+const STYLE = Style.NIGHT;
 
 async function load(url: string): Promise<string> {
   return fetch(url)
@@ -28,12 +31,11 @@ function writeTitle(titlePanel : HTMLElement) {
   for (let i = 0; i < title.length; i++) {
     const letterDiv = document.createElement('span');
     letterDiv.appendChild(document.createTextNode(title[i]));
-    letterDiv.style.color = i % highlightCount == 0 ? colorSupplier.reserveColor("" + i) : Application.STYLE.getSelectableTextColor();
+    letterDiv.style.color = i % highlightCount == 0 ? colorSupplier.reserveColor("" + i) : STYLE.getSelectableTextColor();
     letterDiv.style.marginRight = "0px";
     titlePanel.appendChild(letterDiv);
   }
 }
-
 
 function initUI() {
   const top = document.getElementById('top')!;
@@ -47,18 +49,29 @@ function initUI() {
   titlePanel.style.width = "70%";
   buttonPanel.style.height = "100%";
   buttonPanel.style.width = "30%";
-  top.style.backgroundColor = Application.STYLE.getPaperColor();
+  top.style.backgroundColor = STYLE.getPaperColor();
   writeTitle(titlePanel);
   const fileManager = new FileManager();
-  fabricateFileManagerPanelButton(buttonPanel, fileManager, Application.STYLE);
+  fabricateFileManagerPanelButton(buttonPanel, fileManager, STYLE);
   return fileManager;
 }
 
 async function init(fileManager : FileManager) {
-  fileManager.addFile("Text", await load("https://raw.githubusercontent.com/ArDoCo/Benchmark/main/teastore/text_2020/teastore.txt"));
-  fileManager.addFile("UML", await load("https://raw.githubusercontent.com/ArDoCo/Benchmark/main/teastore/model_2020/uml/teastore.uml"));
+  document.addEventListener('dragleave', (event) => {
+    event.preventDefault();
+  });
+  document.addEventListener('dragover', (event) => {
+      event.preventDefault();
+  });
+  document.addEventListener('drop', (event) => {
+      event.preventDefault();
+      const files = event.dataTransfer!.files;
+      fileManager.addFiles(Array.from(files));
+  });
+  //fileManager.addTextFile("Text", await load("https://raw.githubusercontent.com/ArDoCo/Benchmark/main/teastore/text_2020/teastore.txt"));
+  //fileManager.addTextFile("UML", await load("https://raw.githubusercontent.com/ArDoCo/Benchmark/main/teastore/model_2020/uml/teastore.uml"));
   const middle = document.getElementById('middle')!;
-  middle.style.backgroundColor = Application.STYLE.getBackgroundColor();
+  middle.style.backgroundColor = STYLE.getBackgroundColor();
   middle.style.height = "95%";
   const urlPrefix = "https://raw.githubusercontent.com/ArDoCo/Benchmark/main/teastore/";
   function truncateId (id : string) : string {
@@ -72,7 +85,7 @@ async function init(fileManager : FileManager) {
   ].reduce((a,b) => a.concat(b),[]);
   const app : Application = new Application(middle,fileManager,[
     await load(urlPrefix + "text_2020/teastore.txt"), await load(urlPrefix + "model_2020/uml/teastore.uml"), await load(urlPrefix + "model_2022/code/codeModel.acm")]
-    , totalTraceLinks,Application.STYLE); 
+    , totalTraceLinks,STYLE); 
 }
 
 document.addEventListener("DOMContentLoaded", () => {

@@ -49,23 +49,31 @@ export function fabricateFileManagerPanel(fileManager : FileManager, popupPositi
             style.applyToPanel(preview);
             style.applyToContainer(preview);
             const contentLines = [];
-            const content = fileManager.getContent(fileName);
-            let head = 0;
-            while (head < content.length) {
-                const index = content.indexOf("\n",head);
-                contentLines.push(content.substring(head,index == -1 ? content.length : index));
-                head = index == -1 ? content.length : index + 1;
-            }
-            preview.style.fontSize =  "10px";
-            preview.style.boxShadow = "2px 2px 5px grey";
-            for (let line of contentLines.slice(0,Math.min(10,contentLines.length)).concat(contentLines.length > 10 ? ["...","...",contentLines[contentLines.length-1]] : [])) {
-                const lineDiv = document.createElement('div');
-                lineDiv.appendChild(document.createTextNode(line));
-                preview.appendChild(lineDiv);
-                if (preview.getBoundingClientRect().bottom > window.innerHeight) {
-                    lineDiv.remove();
-                    break;
+            if (fileManager.isTextFile(fileName)) {
+                const content = fileManager.getContent(fileName);
+                let head = 0;
+                while (head < content.length) {
+                    const index = content.indexOf("\n",head);
+                    contentLines.push(content.substring(head,index == -1 ? content.length : index));
+                    head = index == -1 ? content.length : index + 1;
                 }
+                preview.style.fontSize =  "10px";
+                preview.style.boxShadow = "2px 2px 5px grey";
+                for (let line of contentLines.slice(0,Math.min(10,contentLines.length)).concat(contentLines.length > 10 ? ["...","...",contentLines[contentLines.length-1]] : [])) {
+                    const lineDiv = document.createElement('div');
+                    lineDiv.appendChild(document.createTextNode(line));
+                    preview.appendChild(lineDiv);
+                    if (preview.getBoundingClientRect().bottom > window.innerHeight) {
+                        lineDiv.remove();
+                        break;
+                    }
+                }
+            } else {
+                const image = document.createElement('img');
+                image.src = fileManager.getContent(fileName);
+                image.style.width = "100%";
+                image.style.height = "100%";
+                preview.appendChild(image);
             }
             document.body.appendChild(preview); 
             entry.addEventListener("mouseleave", () => {

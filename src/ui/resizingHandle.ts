@@ -12,7 +12,7 @@ export class ResizingHandle {
         this.handle = document.createElement('div');
         this.handle.appendChild(document.createTextNode("<->"));
         this.handle.style.backgroundColor = style.getHeaderColor();
-        this.handle.style.borderColor = style.getBorderColor();
+        this.handle.style.border = "1px solid " + style.getBorderColor();
         this.handle.style.color = style.getSelectableTextColor();
         this.handle.classList.add("resizer-handle");
         this.handle.style.height = "90%";
@@ -80,12 +80,15 @@ export class YResizingHandle {
     constructor(parent : HTMLElement, lastVisPanel : HTMLElement, style : Style) {
         this.handle = document.createElement('div');
         this.handle.appendChild(document.createTextNode("↕"));
+        style.applyToPanel(this.handle);
         this.handle.style.backgroundColor = style.getHeaderColor();
-        this.handle.style.borderColor = style.getBorderColor();
+        this.handle.style.border = "1px solid " + style.getBorderColor();
         this.handle.style.color = style.getSelectableTextColor();
         this.handle.classList.add("resizer-handle");
         this.handle.style.height = "3%";
-        this.handle.style.width = "100%";
+        this.handle.style.width = "90%";
+        this.handle.style.marginLeft = "5%";
+        this.handle.style.marginRight = "5%";
         this.handle.style.marginBottom = "0.5%";
         this.handle.style.cursor = "ns-resize";
         parent.insertBefore(this.handle, parent.lastChild);

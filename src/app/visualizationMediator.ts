@@ -1,8 +1,8 @@
-import { HighlightingListener } from "./artifactVisualizations/highlightingVisualization";
-import { HighlightingVisualization } from "./artifactVisualizations/highlightingVisualization";
-import { TraceabilityLink } from "./classes";
-import { ColorSupplier } from "./colorSupplier";
-import { MediationTraceabilityLink } from "./concepts/mediationTraceLink";
+import { HighlightingListener } from "../artifactVisualizations/highlightingVisualization";
+import { HighlightingVisualization } from "../artifactVisualizations/highlightingVisualization";
+import { TraceabilityLink } from "../classes";
+import { ColorSupplier } from "../colorSupplier";
+import { MediationTraceabilityLink } from "../concepts/mediationTraceLink";
 
 export interface TraceLinkListener {  
     reportStateChanged(links : TraceabilityLink[], colors : string[], names : string[][]) : void;
@@ -24,18 +24,22 @@ export class VisualizationMediator {
 
     private clearDrawnHighlighting(): void {
         for (let link of this.activeLinks) {
-            this.visualizations[link.sourceVisIndex]!.setUnhighlighted(link.source);
-            this.visualizations[link.targetVisIndex]!.setUnhighlighted(link.target);
+            const sourceVis = this.visualizations.find((vis) => vis.getID() == link.sourceVisIndex)!;
+            const targetVis = this.visualizations.find((vis) => vis.getID() == link.targetVisIndex)!;
+            sourceVis.setUnhighlighted(link.source);
+            targetVis.setUnhighlighted(link.target);
         }
     }
 
     private drawActiveLinks(): void {
         const colors = this.activeLinks.map((link) => this.colorSupplier.reserveColor(link.source));
-        const names = this.activeLinks.map((link) => [this.visualizations[link.sourceVisIndex]!.getName(link.source), this.visualizations[link.targetVisIndex]!.getName(link.target)]);
+        const names = this.activeLinks.map((link) => [this.visualizations.find((vis) => vis.getID() == link.sourceVisIndex)!.getName(link.source), this.visualizations.find((vis) => vis.getID() == link.targetVisIndex)!.getName(link.target)]);
         for (let i = 0; i < this.activeLinks.length; i++) {
+            const sourceVis = this.visualizations.find((vis) => vis.getID() == this.activeLinks[i].sourceVisIndex)!;
+            const targetVis = this.visualizations.find((vis) => vis.getID() == this.activeLinks[i].targetVisIndex)!;
             const link = this.activeLinks[i];
-            this.visualizations[link.sourceVisIndex]!.highlight(link.source, colors[i]);
-            this.visualizations[link.targetVisIndex]!.highlight(link.target, colors[i]);
+            sourceVis.highlight(link.source, colors[i]);
+            targetVis.highlight(link.target, colors[i]);
         }
         for (let listener of this.listeners) {
             listener.reportStateChanged(this.activeLinks.map((link) => link), colors, names);
@@ -73,12 +77,6 @@ export class VisualizationMediator {
             this.drawActiveLinks();
         }
     }
-    private updateHighlightabilityForAllVisualizations() {
-        for (let i = 0; i < this.visualizations.length; i++) {
-            this.visualizations[i].setHighlightable(this.traceLinks.filter((link) => link.sourceVisIndex == i).map((link) => link.source));
-            this.visualizations[i].setHighlightable(this.traceLinks.filter((link) => link.targetVisIndex == i).map((link) => link.target));
-        }
-    }
 
     private getOutgoingLinks(id : string) : MediationTraceabilityLink[] {
         return this.traceLinks.filter((link) => link.source == id).concat(this.traceLinks.filter((link) => link.target == id).map((link) => link.reversed()));
@@ -96,18 +94,24 @@ export class VisualizationMediator {
         return active
     }
         
-    public removeVisualization(index : number) : void {
-        function updateTraceLinks(traceLinks : MediationTraceabilityLink[], index : number) : MediationTraceabilityLink[] {
-            return traceLinks.filter((link) => link.sourceVisIndex != index && link.targetVisIndex != index)
-                .map((link) => link.sourceVisIndex > index ? new MediationTraceabilityLink(link.source, link.target, link.sourceVisIndex - 1, link.targetVisIndex) : link);
-        }
+    public removeVisualization(id : number) : void {
         this.clearDrawnHighlighting();
-        this.traceLinks = updateTraceLinks(this.traceLinks, index);
-        this.activeLinks = updateTraceLinks(this.activeLinks, index);
-        this.drawActiveLinks();
-        for (let listener of this.listeners) {
-            listener.reportClosed(index);
+        for (let vis of this.visualizations) {
+            vis.clearHighlightability();
         }
+        const newTraceLinks = [];
+        for (let link of this.traceLinks) {
+            if (link.sourceVisIndex != id && link.targetVisIndex != id) {
+                newTraceLinks.push(link);
+            }
+        }
+        this.traceLinks = [];
+        this.activeLinks = [];
+        this.addTraceLinks(newTraceLinks);
+        for (let listener of this.listeners) {
+            listener.reportClosed(id);
+        }
+        this.drawActiveLinks();
     }
 
     public getNumberOfVisualizations() : number {
@@ -125,8 +129,8 @@ export class VisualizationMediator {
         const handleUnhighlight = (sourceVisIndex: number, id: string): void => {
             this.handleUnhighlight(sourceVisIndex, id);
         };
-        const removeVisualization = (index  : number) : void => {
-            this.removeVisualization(index);
+        const removeVisualization = (id  : number) : void => {
+            this.removeVisualization(id);
         }
         visualization.addHighlightingListener(new class implements HighlightingListener {
             shouldBeHighlighted(id: string): void {
@@ -136,23 +140,18 @@ export class VisualizationMediator {
                 handleUnhighlight(index, id);
             }
             shouldClose(): void {
-                removeVisualization(index);
+                removeVisualization(visualization.getID());
             }
         });
     }
 
     public addTraceLinks(traceLinks : MediationTraceabilityLink[]) : void {
-        for (let link of traceLinks) {
-            if (link.sourceVisIndex >= this.visualizations.length || link.targetVisIndex >= this.visualizations.length) {
-                throw new Error("Trace link with invalid source/target visualization index: " + link.sourceVisIndex + " -> " + link.targetVisIndex);
-            }
-        }
         this.clearDrawnHighlighting();
         this.activeLinks = [];
         this.traceLinks = this.traceLinks.concat(traceLinks);
-        for (let i = 0; i < this.visualizations.length; i++) {
-            this.visualizations[i].setHighlightable(this.traceLinks.filter((link) => link.sourceVisIndex == i).map((link) => link.source));
-            this.visualizations[i].setHighlightable(this.traceLinks.filter((link) => link.targetVisIndex == i).map((link) => link.target));
+        for (let vis of this.visualizations) {
+            vis.setHighlightable(this.traceLinks.filter((link) => link.sourceVisIndex == vis.getID()).map((link) => link.source));
+            vis.setHighlightable(this.traceLinks.filter((link) => link.targetVisIndex == vis.getID()).map((link) => link.target));
         }
     }
 }

@@ -166,4 +166,8 @@ export class CodeModelTreeVisualization extends SVGBasedHighlightingVisualizatio
             edges.push({source: localPack.id, target: truncatedCompilationUnitId, label: ""});
         }
     }
+
+    setStyle(style: Style): void {
+        this.style = style;
+    }
 }

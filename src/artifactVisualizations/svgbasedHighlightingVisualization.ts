@@ -23,6 +23,7 @@ import { Style } from '../style';
             super(highlightableIds, title, style);
             this.svgWidth = width;
             this.svgHeight = height;
+            viewport.style.overflow = "hidden";
             viewport.style.backgroundColor = this.style.getPaperColor();
             this.plot = d3.select(viewport).append("svg")
                 .attr("width", this.svgWidth)

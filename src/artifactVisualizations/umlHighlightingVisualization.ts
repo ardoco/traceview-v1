@@ -293,4 +293,8 @@ export class UMLHighlightingVisualization extends SVGBasedHighlightingVisualizat
             .attr("stroke", this.style.getSelectableTextColor())
             .attr("d", "M0,0 L10,5 L0,10");
     }
+
+    setStyle(style: Style): void {
+        this.style = style;
+    }
 }

@@ -22,23 +22,6 @@ body, html {
     padding-top: 15px;
 }
 
-.file-input-container > :first-child {
-    height: 50%;
-    font-size: 28px;
-    text-decoration: underline;
-}
-
-.file-input-container > :last-child {
-    height: 50%;
-    font-size: 18px;
-    text-decoration: underline;
-}
-
-
-#leftInput, #rightInput, #traceLinkInput {
-    margin-top: 10px;
-}
-
 .uiBigRow {
     display: flex;
     flex-direction: row;

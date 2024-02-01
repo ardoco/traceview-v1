@@ -16,6 +16,7 @@ export class NLHighlightingVisualization extends HighlightingVisualization {
 
     constructor(viewport : HTMLElement, sentences : NLSentence[], highlightableIds : string[], style : Style) {
         super(highlightableIds, Config.NLVIS_TITLE, style);
+        viewport.style.overflow = "auto";
         this.showUnselectable = true;
         this.visualizedArtifacts = new Map<string,NLSentence>();
         this.artifactVisualizations = new Map<string,HTMLElement>();
@@ -87,6 +88,10 @@ export class NLHighlightingVisualization extends HighlightingVisualization {
             if (this.artifactVisualizations.has(id)) {
                 this.artifactVisualizations.get(id)!.style.color = this.style.getSelectableTextColor();
             }
+            if (this.hideableRows.has(id)) {
+                this.hideableRows.get(id)!.style.display = "flex";
+                this.hideableRows.delete(id);
+            }
         }
     }
 
@@ -99,6 +104,28 @@ export class NLHighlightingVisualization extends HighlightingVisualization {
     }
 
     public getName(id: string): string {
-        return id + ".Sentence";
+        if (id[id.length-1] == "1") {
+            return id + "st Sentence";
+        } else if (id[id.length-1] == "2") {
+            return id + "nd Sentence";
+        } else if (id[id.length-1] == "3") {
+            return id + "rd Sentence";
+        }
+        return id + "th Sentence";
+    }
+
+    setStyle(style: Style): void {
+        const oldStyle = this.style;
+        this.style = style;
+        this.viewportDiv.style.backgroundColor = this.style.getPaperColor();
+        for (let id of this.artifactVisualizations.keys()) {
+            for (let artifactVisualization of this.artifactVisualizations.values()) {
+                if (artifactVisualization.style.color == oldStyle.getNotSelectableTextColor()) {
+                    artifactVisualization.style.color = this.style.getNotSelectableTextColor();
+                } else if (artifactVisualization.style.color == oldStyle.getSelectableTextColor()) {
+                    artifactVisualization.style.color = this.style.getSelectableTextColor();
+                }
+            }
+        }
     }
 }

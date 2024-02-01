@@ -1,5 +1,5 @@
 import { Buttoned, UIButton } from "../abstractUI";
-import { Style } from "../style";
+import { Style, StyleableUIElement } from "../style";
 
 export interface HighlightingListener {
     shouldBeHighlighted(id : string) : void;
@@ -13,11 +13,12 @@ export interface HighlightingSubject {
     setUnhighlighted(id : string) : void;
 }
 
-export abstract class HighlightingVisualization implements HighlightingSubject, Buttoned {
+export abstract class HighlightingVisualization implements HighlightingSubject, Buttoned, StyleableUIElement {
 
     private highlightingListeners : HighlightingListener[];
     private currentlyHighlighted : Map<string,boolean>;
     private readonly title : string;
+    protected readonly id : number;
 
     protected style : Style;
 
@@ -26,6 +27,7 @@ export abstract class HighlightingVisualization implements HighlightingSubject, 
         this.title = title;
         this.currentlyHighlighted = new Map<string,boolean>(highlightableIds.map((id) => [id,false]));
         this.style = style;
+        this.id = Date.now();
     }
 
     protected abstract highlightElement(id: string, color : string): void;
@@ -34,6 +36,10 @@ export abstract class HighlightingVisualization implements HighlightingSubject, 
     protected abstract setElementsNotHighlightable(ids : string[]) : void;
 
     public abstract getName(id : string) : string;
+
+    public getID() : number {
+        return this.id;
+    }
 
     public getTitle(): string {
         return this.title;
@@ -107,4 +113,6 @@ export abstract class HighlightingVisualization implements HighlightingSubject, 
             this.currentlyHighlighted.delete(id);
         }
     }
+
+    abstract setStyle(style : Style) : void;
 }
