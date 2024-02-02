@@ -275,7 +275,7 @@ export function fabricateVisualizationInputFilesPanel(container : HTMLElement, f
             return statuses[0];
         });
     };
-    fabricatePopupEntry(container, "Artifacts:", appFileManager.getAllFileNames(), valueForArtifactSelectedActions, fontSize, true, style);
+    fabricatePopupEntry(container, "Artifacts:", appFileManager.getAllFileNames().map((name) => appFileManager.getSymbol(name) + " " +  name), valueForArtifactSelectedActions, fontSize, true, style);
     for (let i = 0; i < otherVisualizationNames.length; i++) {
         const valueSelectedActions = [];
         for (let j = 0; j < appFileManager.getAllFileNames().length; j++) {
@@ -289,6 +289,6 @@ export function fabricateVisualizationInputFilesPanel(container : HTMLElement, f
             selectedReverse[i] = checked;
             const statuses = handler(selectedArtifactIndices, selectedLinkIndices, selectedReverse);
         };
-        fabricatePopupEntryWithCheckbox(container, ["This", otherVisualizationNames[i]], appFileManager.getAllFileNames(), valueSelectedActions, fontSize, true, checkAction, style);
+        fabricatePopupEntryWithCheckbox(container, ["This", otherVisualizationNames[i]], appFileManager.getAllFileNames().map((name) => appFileManager.getSymbol(name) + " " +  name), valueSelectedActions, fontSize, true, checkAction, style);
     }   
 }

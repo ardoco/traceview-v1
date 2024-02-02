@@ -119,8 +119,8 @@ export class DiagramVisualization extends HighlightingVisualization {
             .attr("fill", "none");
         this.drawnRects.set(id, rect);
         const label = this.plot.append("text")
-            .attr("x", box.getMainBox().getX() + box.getMainBox().getWidth() / 2)
-            .attr("y", box.getMainBox().getY() + box.getMainBox().getHeight() / 2 + 25)
+            .attr("x", box.getTextBox().getX() + box.getTextBox().getWidth() / 2)
+            .attr("y", box.getTextBox().getY() + box.getTextBox().getHeight() / 2)
             .attr("text-anchor", "middle")
             .attr("dominant-baseline", "middle")
             .attr("fill", color)

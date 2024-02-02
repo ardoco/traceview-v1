@@ -73,7 +73,7 @@ export class Application {
         this.fabricatePlusButtonPanel(this.childrenPanel, 0.05, this.style);
         this.addVisualizationPanel(this.childrenPanel, getTypeName(0), 0.3, fabricateVisualization(0,[datas[0]],[], this.style));
         this.addVisualizationPanel(this.childrenPanel, getTypeName(1), 0.3, fabricateVisualization(1,[datas[1]],[], this.style ));
-        //this.addVisualizationPanel(this.childrenPanel, getTypeName(2),0.3, fabricateVisualization(2,datas[2],[], this.style));  
+        this.addVisualizationPanel(this.childrenPanel, getTypeName(2),0.3, fabricateVisualization(2,[datas[2]],[], this.style));  
         this.mediator = new VisualizationMediator(new CountingColorSupplier(30));
         for (let i = 0; i < this.visTuples.length; i++) {
             this.mediator.appendVisualization(this.visTuples[i].vis);

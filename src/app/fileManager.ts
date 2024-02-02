@@ -77,4 +77,14 @@ export class FileManager {
     public addListener(listener : () => void) : void {
         this.stateChangeListeners.push(listener);
     }
+
+    public getSymbol(fileName : string) : string {
+        if (this.types.get(fileName) == FileType.TXT) {
+            return "🖹";
+        } else if (this.types.get(fileName) == FileType.IMG) {
+            return "🖼";
+        } else {
+            return "🖹";
+        }
+    }
 }
