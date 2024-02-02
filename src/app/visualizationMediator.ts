@@ -22,6 +22,14 @@ export class VisualizationMediator {
         this.colorSupplier = colorSupplier;
     }
 
+    private getVisualizationById(id : number) : HighlightingVisualization {
+        const vis = this.visualizations.find((vis) => vis.getID() == id);
+        if (vis == undefined) {
+            throw new Error("No visualization with id " + id + " found");
+        }
+        return vis;
+    }
+
     private clearDrawnHighlighting(): void {
         for (let link of this.activeLinks) {
             const sourceVis = this.visualizations.find((vis) => vis.getID() == link.sourceVisIndex)!;
@@ -33,7 +41,7 @@ export class VisualizationMediator {
 
     private drawActiveLinks(): void {
         const colors = this.activeLinks.map((link) => this.colorSupplier.reserveColor(link.source));
-        const names = this.activeLinks.map((link) => [this.visualizations.find((vis) => vis.getID() == link.sourceVisIndex)!.getName(link.source), this.visualizations.find((vis) => vis.getID() == link.targetVisIndex)!.getName(link.target)]);
+        const names = this.activeLinks.map((link) => [this.getVisualizationById(link.sourceVisIndex).getName(link.source), this.getVisualizationById(link.targetVisIndex).getName(link.target)]);
         for (let i = 0; i < this.activeLinks.length; i++) {
             const sourceVis = this.visualizations.find((vis) => vis.getID() == this.activeLinks[i].sourceVisIndex)!;
             const targetVis = this.visualizations.find((vis) => vis.getID() == this.activeLinks[i].targetVisIndex)!;

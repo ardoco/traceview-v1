@@ -8,10 +8,10 @@ export function parseAABBs(content : string) : ArtefactAABB[] {
     }
     const mainBoxes = [];
     for (let box of json.diagrams[0].boxes) {
-        const mainBox = new AABB(box.boundingBox.x, box.boundingBox.y, box.boundingBox.width, box.boundingBox.height);
+        const mainBox = new AABB(box.boundingBox.x, box.boundingBox.y, box.boundingBox.w, box.boundingBox.h);
         const textBoxes = [];
         for (let textBox of box.textBoxes) {
-            textBoxes.push(new TextedAABB(textBox.boundingBox.x, textBox.boundingBox.y, textBox.boundingBox.width, textBox.boundingBox.height, textBox.text));
+            textBoxes.push(new TextedAABB(textBox.boundingBox.x, textBox.boundingBox.y, textBox.boundingBox.w, textBox.boundingBox.h, textBox.text));
         }
         mainBoxes.push(new ArtefactAABB(mainBox, textBoxes[0]));
     }

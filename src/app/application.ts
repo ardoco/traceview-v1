@@ -11,6 +11,7 @@ import { ResizingHandle, YResizingHandle } from "../ui/resizingHandle";
 import { FileManager } from "./fileManager";
 import { MediationTraceabilityLink } from "../concepts/mediationTraceLink";
 import { Style, StyleableUIElement } from "../style";
+import { fabricateNewOOPVisPopupPanel } from "../ui/oopInitVisPopup";
 
 interface VisTuple {
     vis : HighlightingVisualization;
@@ -139,10 +140,9 @@ export class Application {
         container.addEventListener('click', () => {
             fabricateNewVisPopupPanel(this.visTuples.map((tuple) => tuple.vis.getTitle()), (arg: { visTypeIndex: VisualizationType; artifactData: string[]; outgoingMediationTraceLinks: MediationTraceabilityLink[] }) => {
                 const outgoingLinks = arg.outgoingMediationTraceLinks;
-                console.log("tls: " + outgoingLinks.length);
                 this.addVisualizationPanel(viewport, getTypeName(arg.visTypeIndex ), 0.3, fabricateVisualization(arg.visTypeIndex,arg.artifactData,outgoingLinks, this.style));
                 this.mediator.appendVisualization(this.visTuples[this.visTuples.length-1].vis);
-                this.mediator.addTraceLinks(outgoingLinks);
+                this.mediator.addTraceLinks(outgoingLinks.map((link) => new MediationTraceabilityLink(link.source, link.target, this.visTuples[link.sourceVisIndex].id, this.visTuples[link.targetVisIndex].id)));
                 return true;
             }, this.fileManager, style);
         });

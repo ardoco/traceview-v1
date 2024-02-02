@@ -20,7 +20,7 @@ export class FileManager {
             reader.onload = (event) => {
                 resolve(event.target!.result as string);
             };
-            if (file.type !== "text/plain") {
+            if (file.type !== "text/plain" && file.type != "application/json") {
                 reader.readAsDataURL(file);
             } else {
                 reader.readAsText(file);
@@ -33,7 +33,7 @@ export class FileManager {
             const file = files[i];
             const fileContent = await this.readFileAsync(file);
             this.files.set(file.name, fileContent);
-            this.types.set(file.name, file.type == "text/plain" ? FileType.TXT : FileType.IMG);
+            this.types.set(file.name, file.type == "text/plain" || file.type == "application/json" ? FileType.TXT : FileType.IMG);
         }
     
         for (let listener of this.stateChangeListeners) {
@@ -65,7 +65,7 @@ export class FileManager {
 
     public getContent(fileName : string) : string {
         if (!this.files.has(fileName)) {
-            throw new Error("File does not exist");
+            throw new Error("File  \""+ fileName  + "\" does not exist");
         }
         return this.files.get(fileName)!;
     }

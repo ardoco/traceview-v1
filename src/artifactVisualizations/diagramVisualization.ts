@@ -11,6 +11,8 @@ export class DiagramVisualization extends HighlightingVisualization {
     private readonly zoomMinFactor = 0.1;
     private readonly zoomMaxFactor = 10;
 
+    protected viewport: HTMLElement;
+
     protected plot: d3.Selection<SVGSVGElement, unknown, null, undefined>;
     protected svgWidth: number;
     protected svgHeight: number;
@@ -20,14 +22,17 @@ export class DiagramVisualization extends HighlightingVisualization {
     private translation : {x : number, y : number} = {x : 0, y : 0};
 
     protected boxes : Map<string,ArtefactAABB> = new Map<string,ArtefactAABB>();
+    protected drawnRects : Map<string,d3.Selection<SVGRectElement, unknown, null, undefined>> = new Map<string,d3.Selection<SVGRectElement, unknown, null, undefined>>();
+    protected drawnLabels : Map<string,d3.Selection<SVGTextElement, unknown, null, undefined>> = new Map<string,d3.Selection<SVGTextElement, unknown, null, undefined>>();
     
     constructor(viewport : HTMLElement, imageData : string, aabbs : ArtefactAABB[], highlightableIds: string[], style : Style) {
         super(highlightableIds, Config.DIAGRAM_VIS_TITLE, style);
         for (let box of aabbs) {
             this.boxes.set(box.getIdentifier(), box);
         }
-        viewport.style.backgroundColor = style.getPaperColor();
-        viewport.style.overflow = "hidden";
+        this.viewport = viewport;
+        this.viewport.style.backgroundColor = style.getPaperColor();
+        this.viewport.style.overflow = "hidden";
         const image = new Image();
         image.src = imageData;
         let plot = null;
@@ -55,15 +60,6 @@ export class DiagramVisualization extends HighlightingVisualization {
                 .attr("width", "100%")
                 .attr("height", "100%")
                 .style("fill", "url(#image-pattern)"); 
-            this.plot
-                .append("rect")
-                .attr("x", image.width / 2 - 50)
-                .attr("y", image.height / 2 - 50)
-                .attr("width", 100)
-                .attr("height", 100)
-                .attr("stroke", "red")
-                .attr("stroke-width", 5)
-                .attr("fill", "none");
                 viewport.addEventListener("wheel", (event) => {
                     event.preventDefault();
                     this.zoomFactor = Math.max(this.zoomMinFactor, Math.min(this.zoomMaxFactor, this.zoomFactor * (1 + -event.deltaY / 1000)));
@@ -94,30 +90,68 @@ export class DiagramVisualization extends HighlightingVisualization {
     }
 
     getButtons(): UIButton[] {
-        return super.getButtons().concat([new UIButton("Z", "Zoom in", () => {
-            this.plot.append("rect").attr("x", 50).attr("y", 50).attr("width", 100).attr("height", 100).attr("stroke", "yellow");   
+        return [new UIButton("[]", "draw all", () => {
+            for (let id of this.boxes.keys()) {
+                this.highlightElement(id, "red");
+            }
             return true;
-        })]);
+        }), new UIButton("_", "clear all", () => {
+            for (let id of this.boxes.keys()) {
+                this.unhighlightElement(id);
+            }
+            return true;
+        })].concat(super.getButtons());
     }
 
     protected highlightElement(id: string, color: string): void {
-        //throw new Error("Method not implemented.");
+        if (this.drawnRects.has(id)) {
+           this.unhighlightElement(id);
+        }
+        const box = this.boxes.get(id)!;
+        const rect = this.plot.append("rect")
+            .attr("x", box.getMainBox().getX())
+            .attr("y", box.getMainBox().getY())
+            .attr("width", box.getMainBox().getWidth())
+            .attr("height", box.getMainBox().getHeight())
+            .attr("stroke", color)
+            .attr("stroke-width", 5)
+            .on("click", () => { this.toggleHighlight(id); })
+            .attr("fill", "none");
+        this.drawnRects.set(id, rect);
+        const label = this.plot.append("text")
+            .attr("x", box.getMainBox().getX() + box.getMainBox().getWidth() / 2)
+            .attr("y", box.getMainBox().getY() + box.getMainBox().getHeight() / 2 + 25)
+            .attr("text-anchor", "middle")
+            .attr("dominant-baseline", "middle")
+            .attr("fill", color)
+            .attr("stroke", 2)
+            .attr("font-size", 25)
+            .attr("user-select", "none")
+            .on("click", () => { this.toggleHighlight(id); })
+            .text(box.getTextBox().getText());
+        this.drawnLabels.set(id, label);
     }
     protected unhighlightElement(id: string): void {
-        //throw new Error("Method not implemented.");
+        const rect = this.drawnRects.get(id);
+        const label = this.drawnLabels.get(id);
+        if (rect) {
+            rect.remove();
+            label!.remove();
+            this.drawnRects.delete(id);
+            this.drawnLabels.delete(id);
+        }
     }
     protected setElementsHighlightable(ids: string[]): void {
-        //throw new Error("Method not implemented.");
+        //
     }
     protected setElementsNotHighlightable(ids: string[]): void {
-        //throw new Error("Method not implemented.");
+        //
     }
     public getName(id: string): string {
-        return "Method not implemented.";
-        //throw new Error("Method not implemented."); // return index of box?
+        return this.boxes.get(id)!.getTextBox().getText();
     }
 
     setStyle(style: Style): void {
-        throw new Error("Method not implemented.");
+        this.viewport.style.backgroundColor = style.getPaperColor();
     }
 }

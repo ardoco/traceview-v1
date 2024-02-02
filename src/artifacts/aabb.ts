@@ -11,6 +11,22 @@ export class AABB {
         this.width = width;
         this.height = height;
     }
+
+    getX() : number {
+        return this.x;
+    }
+
+    getY() : number {
+        return this.y;
+    }
+
+    getWidth() : number {
+        return this.width;
+    }
+
+    getHeight() : number {
+        return this.height;
+    }
 }
 
 export class TextedAABB extends AABB {
@@ -20,6 +36,10 @@ export class TextedAABB extends AABB {
     constructor(x : number, y : number, width : number, height : number, text : string) {
         super(x, y, width, height);
         this.text = text;
+    }
+
+    getText() : string {
+        return this.text;
     }
 }
 
@@ -34,5 +54,22 @@ export class ArtefactAABB {
 
     getIdentifier() : string {
         return this.mainBox.x + "_" + this.mainBox.y + "_" + this.mainBox.width + "_" + this.mainBox.height;
+    }
+
+    getMainBox() : AABB {
+        return this.mainBox;
+    }
+
+    getTextBox() : TextedAABB {
+        return this.textBox;
+    }
+
+    serialize() : string {
+        return JSON.stringify({mainBox : this.mainBox, textBox : this.textBox});
+    }
+
+    static deserialize(serialized : string) : ArtefactAABB {
+        const json = JSON.parse(serialized);
+        return new ArtefactAABB(json.mainBox, json.textBox);
     }
 }

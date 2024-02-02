@@ -10,7 +10,7 @@ import { parseAABBs } from './parse/parseBBs';
 
 const STYLE = Style.NIGHT;
 
-async function load(url: string): Promise<string> {
+export async function load(url: string): Promise<string> {
   return fetch(url)
     .then(response => {
       if (!response.ok) {

@@ -39,6 +39,19 @@ export function fabricateVisualization(visualizationType : VisualizationType, da
     throw new Error("Unknown visualization type index: " + visualizationType);
 }
 
+export function getExpectedFileCount(visualizationType : VisualizationType) : number {
+    if (visualizationType == VisualizationType.NL) {
+        return 1;
+    } else if (visualizationType == VisualizationType.UML) {
+        return 1;
+    } else if (visualizationType == VisualizationType.CODE) {
+        return 1;
+    } else if (visualizationType == VisualizationType.IMG) {
+        return 2;
+    }
+    throw new Error("Unknown visualization type index: " + visualizationType);
+}
+
 export function getTypeName(typeIndex : number) : string {
     if (typeIndex == VisualizationType.NL) {
         return Config.NLVIS_TITLE;
@@ -50,4 +63,17 @@ export function getTypeName(typeIndex : number) : string {
         return Config.DIAGRAM_VIS_TITLE;
     }
     throw new Error("Unknown visualization type index: " + typeIndex);
+}
+
+export function getType(name : string) {
+    if (name == Config.NLVIS_TITLE) {
+        return VisualizationType.NL;
+    } else if (name == Config.UMLVIS_TITLE) {
+        return VisualizationType.UML;
+    } else if (name == Config.CODEVIS_TITLE) {
+        return VisualizationType.CODE;
+    } else if (name == Config.DIAGRAM_VIS_TITLE) {
+        return VisualizationType.IMG;
+    }
+    throw new Error("Unknown visualization type name: " + name);
 }

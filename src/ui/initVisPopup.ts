@@ -7,6 +7,32 @@ import { parseNLTXT, parseTraceLinksFromCSV, parseUML } from "../parse/parse";
 import { parseCodeFromACM } from "../parse/parseACM";
 import { Style } from "../style";
 
+class ProtoVisData {
+
+    protected artifactNames : string[] = [];
+    protected type : VisualizationType | null = null;
+
+    constructor(appFileManager : FileManager, linkablesNames : string[]) {
+
+    }
+
+    setType(typeIndex : number) {
+        
+    }
+
+    setArtifact(index : number, fileName : string) : boolean {
+        return false;
+    }
+
+    setLinkTo(linkFileName : string, linkableIndex : number, reverse : boolean) : boolean {
+        return false;
+    }
+
+    finalize() {
+
+    }
+}
+
 
 export function fabricateNewVisPopupPanel(
     otherVisualizationNames: string[], sendToApp: (data: { visTypeIndex: number; artifactData: string[]; outgoingMediationTraceLinks: MediationTraceabilityLink[] }) => boolean, appFileManager : FileManager, style : Style): void {
@@ -50,9 +76,11 @@ export function fabricateNewVisPopupPanel(
     typeEntry.style.paddingBottom = 2*fontSize + "px";
     popup.appendChild(bottomPanel);
     bottomPanel.innerHTML = "";
-    fabricateVisualizationInputFilesPanel(bottomPanel, fontSize, otherVisualizationNames, appFileManager, (artifactFileIndex : number, linkFileIndices : number[], reverse : boolean[]) => {
+    const protoVisData = new ProtoVisData(appFileManager, otherVisualizationNames);
+    const tooLongListener : (artifactFileIndices : number[], linkFileIndices : number[], reverse : boolean[]) => [number,number[]] = (artifactFileIndices : number[], linkFileIndices : number[], reverse : boolean[]) => {
         let artifactDataOK = 0;
         const traceLinkStatuses = [];
+        const artifactFileIndex = artifactFileIndices[0];
         if (artifactFileIndex != -1) {
             const fileName = appFileManager.getAllFileNames()[artifactFileIndex];
             const fileContent = appFileManager.getContent(fileName);
@@ -89,7 +117,8 @@ export function fabricateNewVisPopupPanel(
             }
         }
         return [artifactDataOK, traceLinkStatuses];
-    }, style);
+    };
+    fabricateVisualizationInputFilesPanel(bottomPanel, fontSize, otherVisualizationNames, appFileManager, tooLongListener, style);
 
     const closeButton = document.createElement('div');
     closeButton.classList.add("initVis-bigButton");
@@ -111,7 +140,7 @@ export function fabricateNewVisPopupPanel(
     });
     closeButton.addEventListener('mouseup', () => {
         if (artifactData.length > 0) {
-            sendToApp({visTypeIndex: selectedTypeIndex, artifactData: artifactData, outgoingMediationTraceLinks: traceLinks});
+            sendToApp({visTypeIndex: selectedTypeIndex, artifactData: artifactData.concat([appFileManager.getContent("goldstandard_sad_id_2018.json")]), outgoingMediationTraceLinks: traceLinks}); //TODO
         }
         overlay.remove();
     });
@@ -234,15 +263,15 @@ export function fabricateDropDown(parent : HTMLElement, options : string[], acti
 }
 
 export function fabricateVisualizationInputFilesPanel(container : HTMLElement, fontSize : number, otherVisualizationNames : string[], appFileManager : FileManager,
-     handler : (artifactFileIndex : number, linkFileIndices : number[], reverse : boolean[]) => [number,number[]], style : Style) {
-    let selectedArtifactIndex = -1;
+     handler : (artifactFileIndices : number[], linkFileIndices : number[], reverse : boolean[]) => [number,number[]], style : Style) {
+    let selectedArtifactIndices = [-1,-1];
     let selectedLinkIndices = otherVisualizationNames.map(() => -1);
     let selectedReverse = otherVisualizationNames.map(() => false);
     const valueForArtifactSelectedActions = [];
     for (let i = 0; i < appFileManager.getAllFileNames().length; i++) {
         valueForArtifactSelectedActions.push(() => {
-            selectedArtifactIndex = i;
-            const statuses = handler(selectedArtifactIndex, selectedLinkIndices, selectedReverse);
+            selectedArtifactIndices[0] = i;
+            const statuses = handler(selectedArtifactIndices, selectedLinkIndices, selectedReverse);
             return statuses[0];
         });
     };
@@ -252,13 +281,13 @@ export function fabricateVisualizationInputFilesPanel(container : HTMLElement, f
         for (let j = 0; j < appFileManager.getAllFileNames().length; j++) {
             valueSelectedActions.push(() => {
                 selectedLinkIndices[i] = j;
-                const statuses = handler(selectedArtifactIndex, selectedLinkIndices, selectedReverse);
+                const statuses = handler(selectedArtifactIndices, selectedLinkIndices, selectedReverse);
                 return statuses[1][i];
             });
         }
         const checkAction = (checked : boolean) => {
             selectedReverse[i] = checked;
-            const statuses = handler(selectedArtifactIndex, selectedLinkIndices, selectedReverse);
+            const statuses = handler(selectedArtifactIndices, selectedLinkIndices, selectedReverse);
         };
         fabricatePopupEntryWithCheckbox(container, ["This", otherVisualizationNames[i]], appFileManager.getAllFileNames(), valueSelectedActions, fontSize, true, checkAction, style);
     }   
