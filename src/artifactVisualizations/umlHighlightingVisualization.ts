@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 
-import { UMLBase, UMLComponent, UMLInterface } from '../artifacts/uml';
+import { UMLModel } from '../artifacts/uml';
 import { getTextWidth } from '../utils';
 import { Config } from '../config';
 import { UIButton } from '../abstractUI';
@@ -24,41 +24,44 @@ interface Edge extends d3.SimulationLinkDatum<Node> {
     id: string;
 }
 
+/**
+ * A visualization of an UML component model as a node-link diagram.
+ */
 export class UMLHighlightingVisualization extends SVGBasedHighlightingVisualization {
 
     protected simulation : d3.Simulation<Node, Edge>;
     protected showEdgeLabels : boolean;
-    protected dragFrozen : boolean;
+    protected userCanNotDragNodes : boolean;
     protected edgeLabels : d3.Selection<SVGTextElement, Edge, SVGSVGElement, unknown>;
     protected firstEdgesSelection  : d3.Selection<SVGLineElement, Edge, SVGSVGElement, unknown>;
     protected secondEdgesSelection : d3.Selection<SVGLineElement, Edge, SVGSVGElement, unknown>;
     protected nodes : Node[]
-
-    constructor(viewport : HTMLElement, classes : UMLBase[], highlightableIds: string[], style : Style) {
+    protected marker : d3.Selection<SVGPathElement, unknown, null, undefined>;
+    
+    constructor(viewport : HTMLElement, model : UMLModel, highlightableIds: string[], style : Style) {
         super(viewport,2000,2000, highlightableIds,Config.UMLVIS_TITLE,style);
         this.showEdgeLabels = true;
-        this.dragFrozen = true;
-        const components = classes.filter((c) => c instanceof UMLComponent).map((c) => c as UMLComponent);
-        const interfaces = classes.filter((c) => c instanceof UMLInterface).map((c) => c as UMLInterface);
-        this.nodes = components.map((c) => {
-            return {id: c.getIdentifier(), width: getTextWidth(c.getName(), FONT_SIZE) + 25, height : 32, name: c.getName()};
-        });
-        const edgeSet = new Map<string,Edge>();
-        for (let c of components) {
-            for (let usage of c.getUsages()) {
-                for (let otherComponent of components) {
-                    if (otherComponent.getInterfaceRealizations().find((r) => r.getTargetId() == usage.getTargetId())) {
-                        const iface = interfaces.find((c) => c.getIdentifier() == usage.getTargetId() && c.constructor.name == "UMLInterface")!;
-                        edgeSet.set(c.getIdentifier() + otherComponent.getIdentifier(),{source: c.getIdentifier(), target: otherComponent.getIdentifier(), label: iface.getName(), id: iface.getIdentifier()});
-                    }
+        this.userCanNotDragNodes = true;
+        this.nodes = [];
+        for (let element of model.getElements()) {
+            if (!element.isInterface()) {
+                this.nodes.push({id: element.getIdentifier(), width: getTextWidth(element.getName(), FONT_SIZE) + 25, height : 32, name: element.getName()});
+            }
+        }
+        const edgeSet = new Set<Edge>();
+        for (let userElement of model.getElements()) {
+            for (let usedElement of userElement.getUses()) {
+                for (let child of usedElement.getChildComponents()) {
+                    edgeSet.add({source: userElement.getIdentifier(), target: child.getIdentifier(), label: usedElement.getName(), id: usedElement.getIdentifier()});
                 }
             }
         }
         const links = Array.from(edgeSet.values());
+        console.log(links.length);
         viewport.scrollLeft = this.svgWidth / 4;
         viewport.scrollTop = this.svgHeight / 4;
         (viewport.firstChild as HTMLElement).style.backgroundColor = this.style.getPaperColor();
-        this.secretlyMakeMarkers();
+        this.marker = this.secretlyMakeMarkers();
         this.simulation = d3.forceSimulation(this.nodes)
             .force('link', d3.forceLink(links).id(d => (d as any).id).distance(100))
             .force('charge', d3.forceManyBody().strength(d => 1000))
@@ -66,18 +69,18 @@ export class UMLHighlightingVisualization extends SVGBasedHighlightingVisualizat
             .force('center', d3.forceCenter(this.svgWidth / 2, this.svgHeight / 2));
         const simulation = this.simulation;
         const dragstarted = (event: any, d: any) => {
-            if (this.dragFrozen) return;
+            if (this.userCanNotDragNodes) return;
             if (!event.active) simulation.alphaTarget(0.3).restart();
             d.fx = d.x;
             d.fy = d.y;
         }
         const dragged = (event: any, d: any) => {
-            if (this.dragFrozen) return;
+            if (this.userCanNotDragNodes) return;
             d.fx = event.x;
             d.fy = event.y;
         }
         const dragended = (event: any, d: any) => {
-            if (this.dragFrozen) return;
+            if (this.userCanNotDragNodes) return;
             if (!event.active) simulation.alphaTarget(0);
             d.fx = null;
             d.fy = null;
@@ -170,9 +173,9 @@ export class UMLHighlightingVisualization extends SVGBasedHighlightingVisualizat
 
     getButtons(): UIButton[] {
         const buttons = [new UIButton("❄", "Freeze/Unfreeze Simulation",() => {
-                    this.dragFrozen = !this.dragFrozen;
-                    return this.dragFrozen;
-                }, true, this.dragFrozen),
+                    this.userCanNotDragNodes = !this.userCanNotDragNodes;
+                    return this.userCanNotDragNodes;
+                }, true, this.userCanNotDragNodes),
             new UIButton("⎁", "Toggle Edge Labels", () => {
                     this.showEdgeLabels = !this.showEdgeLabels;
                     this.redrawEdges();
@@ -221,6 +224,7 @@ export class UMLHighlightingVisualization extends SVGBasedHighlightingVisualizat
     }
 
     public getName(id: string): string {
+        console.log("Getting name for " + id);
         const nodeElement = this.nodes.find((n) => n.id == id);
         const edgeElement = this.plot.selectAll<SVGTextElement, Edge>("text")
             .filter((d) => d.id == id);
@@ -259,18 +263,18 @@ export class UMLHighlightingVisualization extends SVGBasedHighlightingVisualizat
             if (angle > 90) {
                 adjustedAngle -= 180;
             } else if (angle < -90) {
-                adjustedAngle += 180;
+                //adjustedAngle += 180;
             }
             return "rotate(" + adjustedAngle + "," + ((x1 + x2) / 2) + "," + ((y1 + y2) / 2) + ")";
         }
     }
 
-    private secretlyMakeMarkers() {
+    private secretlyMakeMarkers() : d3.Selection<SVGPathElement, unknown, null, undefined> {
         const semiCirclePath = d3.path();
         semiCirclePath.arc(25,25,7,0.5 * Math.PI,0.5 * Math.PI + Math.PI, false);
         semiCirclePath.moveTo(30,25);
         semiCirclePath.arc(25,25,4,0,2*Math.PI);    
-        this.plot.append("defs").append("marker")
+        const marker = this.plot.append("defs").append("marker")
             .attr("id", "semicircle")
             .attr("refX", 25)
             .attr("refY", 25)
@@ -292,9 +296,22 @@ export class UMLHighlightingVisualization extends SVGBasedHighlightingVisualizat
             .attr("fill", "none")
             .attr("stroke", this.style.getSelectableTextColor())
             .attr("d", "M0,0 L10,5 L0,10");
+        return marker;
     }
 
     setStyle(style: Style): void {
         this.style = style;
+        this.plot.style("background-color", style.getPaperColor());
+        this.plot.selectAll<SVGRectElement, Node>("rect").filter((d) => this.idIsHighlightable(d.id))
+            .attr("stroke", style.getSelectableTextColor())
+            .attr("fill", style.getPaperColor());
+        this.plot.selectAll<SVGTextElement, Node>("text").filter((d) => this.idIsHighlightable(d.id))
+            .attr("stroke", style.getSelectableTextColor())
+            .attr("fill", style.getSelectableTextColor());
+        this.plot.selectAll<SVGLineElement, Edge>("line").filter((d) => this.idIsHighlightable(d.id))
+            .attr("stroke", style.getSelectableTextColor());
+        this.marker
+            .attr("stroke", style.getSelectableTextColor())
+            .attr("fill", this.style.getPaperColor());
     }
 }

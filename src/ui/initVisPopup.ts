@@ -1,9 +1,10 @@
 import { FileManager } from "../app/fileManager";
-import { VisualizationType, getAllVisualizationTypes, getTypeName } from "../artifactVisualizations/visFactory";
+import { VisualizationFactory, VisualizationType } from "../artifactVisualizations/visFactory";
 import { TraceabilityLink } from "../classes";
 import { MediationTraceabilityLink } from "../concepts/mediationTraceLink";
 import { Config } from "../config";
-import { parseNLTXT, parseTraceLinksFromCSV, parseUML } from "../parse/parse";
+import { parseNLTXT, parseTraceLinksFromCSV } from "../parse/parse";
+import { parseUML } from "../parse/parseUML";
 import { parseCodeFromACM } from "../parse/parseACM";
 import { Style } from "../style";
 
@@ -33,8 +34,7 @@ class ProtoVisData {
     }
 }
 
-
-export function fabricateNewVisPopupPanel(
+export function fabricateNewVisPopupPanel(visFactory : VisualizationFactory,
     otherVisualizationNames: string[], sendToApp: (data: { visTypeIndex: number; artifactData: string[]; outgoingMediationTraceLinks: MediationTraceabilityLink[] }) => boolean, appFileManager : FileManager, style : Style): void {
     const fontSize = 25;
     const overlay = document.createElement('div');
@@ -64,8 +64,8 @@ export function fabricateNewVisPopupPanel(
     });
     const bottomPanel = document.createElement('div');
     let selectedTypeIndex = 0;
-    const visLabels = getAllVisualizationTypes().map((type) => { return getTypeName(type); });
-    const visActions = getAllVisualizationTypes().map((type) => () => {
+    const visLabels = visFactory.getAllVisualizationTypes().map((type) => { return visFactory.getTypeName(type); });
+    const visActions = visFactory.getAllVisualizationTypes().map((type) => () => {
         selectedTypeIndex = type;
         return 2;
     });
@@ -140,7 +140,7 @@ export function fabricateNewVisPopupPanel(
     });
     closeButton.addEventListener('mouseup', () => {
         if (artifactData.length > 0) {
-            sendToApp({visTypeIndex: selectedTypeIndex, artifactData: artifactData.concat([appFileManager.getContent("goldstandard_sad_id_2018.json")]), outgoingMediationTraceLinks: traceLinks}); //TODO
+            sendToApp({visTypeIndex: selectedTypeIndex, artifactData: artifactData.concat(selectedTypeIndex != 3 ? [] : [appFileManager.getContent("goldstandard_sad_id_2018.json")]), outgoingMediationTraceLinks: traceLinks}); //TODO
         }
         overlay.remove();
     });

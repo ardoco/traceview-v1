@@ -2,6 +2,55 @@ import { FileManager } from "../app/fileManager";
 import { Config } from "../config";
 import { Style } from "../style";
 
+export function fabricateFileManagerPanelButton(buttonParent : HTMLElement, fileManager: FileManager, style : Style) {
+    const button = document.createElement('div');
+    buttonParent.appendChild(button);
+    const height = 0.9 * buttonParent.getBoundingClientRect().height;
+    button.style.height = height + "px";
+    button.style.width = 2*height + "px";
+    button.style.fontSize = height / 1.5 + "px";
+    button.style.justifyContent = "center";
+    button.style.alignItems = "center";
+    button.style.display = "flex";
+    button.style.color = style.getSelectableTextColor();
+    button.classList.add("appheader-button");
+    const setButtonActive = (active : boolean) => {
+        button.innerHTML = (active ? Config.FILE_ICON_OPEN : Config.FILE_ICON) + fileManager.getAllFileNames().length;
+        button.style.textShadow = active ? "2px 2px 5px " + style.getFadedBorderColor() : "none";
+    }
+    setButtonActive(false);
+    const buttonsPosInViewport = button.getBoundingClientRect();
+    button.addEventListener("mouseenter", () => {
+        setButtonActive(true);
+        const dropdown = fabricateFileManagerPanel(fileManager, [buttonsPosInViewport.left, buttonsPosInViewport.bottom], height, style);
+        button.addEventListener("mouseleave", () => {
+            const closeListener = () => {
+                setButtonActive(false);
+                dropdown.remove();
+                document.removeEventListener("click", closeListener);
+            }
+            document.addEventListener("click", closeListener);
+            const timeout = setTimeout(() => {
+                setButtonActive(false);
+                dropdown.remove();
+            }, 500);
+            dropdown.addEventListener("mouseenter", () => {
+                setButtonActive(true);
+                clearTimeout(timeout);
+            });
+        });
+        dropdown.addEventListener("mouseleave", () => {
+            if (!document.elementsFromPoint(buttonsPosInViewport.left, buttonsPosInViewport.bottom).includes(button)) {
+                setButtonActive(false);
+                dropdown.remove();
+            }
+        });
+    });
+    fileManager.addListener(() => {
+        setButtonActive(false);
+    });
+}
+
 export function fabricateFileManagerPanel(fileManager : FileManager, popupPosition : [number,number], buttonSize : number, style : Style) {
     const tooltipWidth = 300;
     const tooltipHeight = 300;
@@ -83,53 +132,4 @@ export function fabricateFileManagerPanel(fileManager : FileManager, popupPositi
     }
     outerPanel.style.boxShadow = "2px 2px 5px grey";
     return outerPanel;
-}
-
-export function fabricateFileManagerPanelButton(buttonParent : HTMLElement, fileManager: FileManager, style : Style) {
-    const button = document.createElement('div');
-    buttonParent.appendChild(button);
-    const height = 0.9 * buttonParent.getBoundingClientRect().height;
-    button.style.height = height + "px";
-    button.style.width = 2*height + "px";
-    button.style.fontSize = height / 1.5 + "px";
-    button.style.justifyContent = "center";
-    button.style.alignItems = "center";
-    button.style.display = "flex";
-    button.style.color = style.getSelectableTextColor();
-    button.classList.add("appheader-button");
-    const setButtonActive = (active : boolean) => {
-        button.innerHTML = (active ? Config.FILE_ICON_OPEN : Config.FILE_ICON) + fileManager.getAllFileNames().length;
-        button.style.textShadow = active ? "2px 2px 5px " + style.getFadedBorderColor() : "none";
-    }
-    setButtonActive(false);
-    const buttonsPosInViewport = button.getBoundingClientRect();
-    button.addEventListener("mouseenter", () => {
-        setButtonActive(true);
-        const dropdown = fabricateFileManagerPanel(fileManager, [buttonsPosInViewport.left, buttonsPosInViewport.bottom], height, style);
-        button.addEventListener("mouseleave", () => {
-            const closeListener = () => {
-                setButtonActive(false);
-                dropdown.remove();
-                document.removeEventListener("click", closeListener);
-            }
-            document.addEventListener("click", closeListener);
-            const timeout = setTimeout(() => {
-                setButtonActive(false);
-                dropdown.remove();
-            }, 500);
-            dropdown.addEventListener("mouseenter", () => {
-                setButtonActive(true);
-                clearTimeout(timeout);
-            });
-        });
-        dropdown.addEventListener("mouseleave", () => {
-            if (!document.elementsFromPoint(buttonsPosInViewport.left, buttonsPosInViewport.bottom).includes(button)) {
-                setButtonActive(false);
-                dropdown.remove();
-            }
-        });
-    });
-    fileManager.addListener(() => {
-        setButtonActive(false);
-    });
 }

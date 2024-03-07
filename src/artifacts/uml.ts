@@ -1,93 +1,101 @@
-import { IIdentifiable } from "../classes";
+export class UML2Operation {
 
-export abstract class UMLBase implements IIdentifiable {
     protected identifier : string;
     protected name : string;
-
-    getIdentifier(): string {
-        return this.identifier;
-    }
 
     constructor(identifier : string, name : string) {
         this.identifier = identifier;
         this.name = name;
     }
+}
 
-    public getName() {
+export abstract class UMLAbstractComponent {
+
+    protected identifier : string;
+    protected name : string;
+    protected extendz : UMLAbstractComponent[];
+    protected uses : UMLAbstractComponent[];
+    protected operations : UML2Operation[];
+    protected children : UMLAbstractComponent[];
+
+    constructor(identifier : string, name : string, operations : {identifier : string, name : string}[] ) {
+        this.identifier = identifier;
+        this.name = name;
+        this.extendz = [];
+        this.uses = [];
+        this.operations = [];
+        for (let operation of operations) {
+            this.operations.push(new UML2Operation(operation.identifier,operation.name));
+        }
+        this.children = [];
+    }
+    
+    addExtends(extendz : UMLAbstractComponent) {
+        this.extendz.push(extendz);
+    }
+
+    addUses(uses : UMLAbstractComponent) {
+        this.uses.push(uses);
+    }
+
+    getIdentifier() : string {
+        return this.identifier;
+    }
+
+    getName() : string {
         return this.name;
     }
+
+    getExtends() : UMLAbstractComponent[] {
+        return this.extendz;
+    }
+
+    getUses() : UMLAbstractComponent[] {
+        return this.uses;
+    }
+
+    addChild(child : UMLAbstractComponent) {
+        if (this.children.indexOf(child) < 0) {
+            this.children.push(child);
+        }
+    }
+
+    getChildComponents() : UMLAbstractComponent[] {
+        return this.children;
+    }
+
+    abstract isInterface() : boolean;
 }
 
-export class UMLComponent extends UMLBase {
-    protected interfaceRealizations : UMLInterfaceRealization[];
-    protected usages : UMLUsage[];
+export class UMLComponent extends UMLAbstractComponent {
 
-    constructor(identifier : string, name : string, interfaceRealizations : UMLInterfaceRealization[], usages : UMLUsage[]) {
-        super(identifier,name);
-        this.identifier = identifier;
-        this.interfaceRealizations = interfaceRealizations;
-        this.usages = usages;
-    }
-
-    public getInterfaceRealizations() {
-        return this.interfaceRealizations;
-    }
-
-    public getUsages() {
-        return this.usages;
-    }
-}
-
-export class UMLInterface extends UMLBase {
-    public readonly operations : UMLOperation[];
-
-    constructor(identifier : string, name : string, operations : UMLOperation[]) {
-        super(identifier,name);
-        this.operations = operations;
-    }
-}
-
-export class UMLInterfaceRealization extends UMLBase {
-    protected sourceId : string;
-    protected targetId : string;
-
-    constructor(identifier : string, sourceId : string, targetId : string,name : string) {
-        super(identifier,name);
-        this.sourceId = sourceId;
-        this.targetId = targetId;
-    }
-
-    public getSourceId() {
-        return this.sourceId;
-    }
-
-    public getTargetId() {
-        return this.targetId;
-    }
-}
-
-export class UMLOperation extends UMLBase {
     constructor(identifier : string, name : string) {
-        super(identifier,name);
+        super(identifier,name,[]);
+    }
+
+    isInterface() : boolean {
+        return false;
     }
 }
 
-export class UMLUsage extends UMLBase {
-    public readonly sourceId : string;
-    public readonly targetId : string;
-
-    constructor(identifier : string, sourceId : string, targetId : string) {
-        let name = "Usage: " + sourceId + " -> " + targetId;
-        super(identifier,name);
-        this.sourceId = sourceId;
-        this.targetId = targetId;
+export class UMLInterface extends UMLAbstractComponent {
+    
+    constructor(identifier : string, name : string, operations : {identifier : string, name : string}[] ) {
+        super(identifier,name,operations);
     }
 
-    public getSourceId() {
-        return this.sourceId;
+    isInterface() : boolean {
+        return true;
+    }
+}
+
+export class UMLModel {
+    protected elements : UMLAbstractComponent[];
+    constructor(components : UMLAbstractComponent[], interfaces : UMLAbstractComponent[]) {
+        this.elements = components.concat(interfaces);
     }
 
-    public getTargetId() {
-        return this.targetId;
+    getElements() : UMLAbstractComponent[] {
+        return this.elements;
     }
 }

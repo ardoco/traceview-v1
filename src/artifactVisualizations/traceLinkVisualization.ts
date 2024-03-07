@@ -1,9 +1,10 @@
 import { Buttoned, UIButton } from "../abstractUI";
-import { TraceLinkListener } from "../app/visualizationMediator";
+import { TraceLinkListener } from "../app/visualizationObserver";
 import { TraceabilityLink } from "../classes";
-import { Style } from "../style";
+import { Style, StyleableUIElement } from "../style";
+import { Closeable } from "./closeable";
 
-export class TraceLinkVisualization implements Buttoned, TraceLinkListener {
+export class TraceLinkVisualization extends Closeable implements Buttoned, TraceLinkListener, StyleableUIElement {
 
     protected colorSelectable : string;
     protected viewport : HTMLElement;
@@ -15,19 +16,24 @@ export class TraceLinkVisualization implements Buttoned, TraceLinkListener {
     protected style : Style;
 
     constructor(viewport : HTMLElement, style : Style, fontSize : number) {
+        super();
         this.style = style;
         style.applyToPanel(viewport);
-        this.viewport = document.createElement('div');
+        this.viewport = viewport;
         viewport.style.overflow = "auto";
-        viewport.appendChild(this.viewport);
-        this.viewport.style.width = "90%";
-        this.viewport.style.marginLeft = fontSize + "px";
-        this.viewport.style.height = "100%";
         this.maxFontSize = fontSize;
         this.viewport.style.backgroundColor = style.getPaperColor();
         this.viewport.style.fontSize = fontSize + "px";
         this.colorSelectable = style.getSelectableTextColor();
         this.lastReportedState = [];
+        this.redraw();
+    }
+    setStyle(style: Style): void {
+        this.style = style;
+        style.applyToPanel(this.viewport);
+        this.viewport.style.backgroundColor = style.getPaperColor();
+        this.viewport.style.fontSize = this.maxFontSize + "px";
+        this.colorSelectable = style.getSelectableTextColor();
         this.redraw();
     }
 
@@ -39,6 +45,7 @@ export class TraceLinkVisualization implements Buttoned, TraceLinkListener {
         let fontSize = this.maxFontSize;
         let currentRowDiv = document.createElement('div');
         currentRowDiv.classList.add("uiBigRow");
+        currentRowDiv.style.marginLeft = fontSize/4 + "px";
         currentRowDiv.style.marginBottom = fontSize/4 + "px";
         this.viewport.appendChild(currentRowDiv);
         let lastColor = linksToAdd.length > 0 ? linksToAdd[0].color : "";
@@ -53,7 +60,7 @@ export class TraceLinkVisualization implements Buttoned, TraceLinkListener {
             entry.style.whiteSpace = "nowrap";
             entry.style.marginRight = fontSize/2 + "px";
             currentRowDiv.appendChild(entry);
-            if (currentRowDiv.getBoundingClientRect().width > this.viewport.getBoundingClientRect().width || link.color != lastColor) {
+            if (currentRowDiv.getBoundingClientRect().width + fontSize > this.viewport.getBoundingClientRect().width || link.color != lastColor) {
                 entry.remove();
                 currentRowDiv = document.createElement('div');
                 currentRowDiv.classList.add("uiBigRow");
@@ -77,9 +84,11 @@ export class TraceLinkVisualization implements Buttoned, TraceLinkListener {
         this.redraw();
     }
 
-    reportClosed(index : number) : void {}
+    reportClosed(index : number) : void {
+        this.redraw();
+    }
 
     getButtons(): UIButton[] {
-        return [];
+        return [new UIButton(UIButton.SYMBOL_CLOSE, "Close", () => {this.shouldClose(); return true;})];
     }
 }

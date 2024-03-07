@@ -1,103 +1,77 @@
-import { Config } from "../config";
-import { Style } from "../style";
+import { Style, StyleableUIElement } from "../style";
 
-export class ResizingHandle {
-    handle : HTMLElement;
-    leftOfHandle : HTMLElement;
-    rightOfHandle : HTMLElement | null;
-    startX : number;
-    isResizing : boolean;
+/**
+ * Encapsulates the logic required to resize two divs along an axis based on the user dragging a third div (the handle) along this axis
+ */
+abstract class AbstractResizingHandle implements StyleableUIElement {
+    
+    protected handle : HTMLElement;
+    protected startValue : number;
+    protected isResizing : boolean;
+    protected previousDiv : HTMLElement;
+    protected nextDiv : HTMLElement | null;
+    protected style : Style;
 
-    constructor(parent : HTMLElement, lastVisPanel : HTMLElement, style : Style) {
+    constructor(previousDiv : HTMLElement, style : Style,) {
         this.handle = document.createElement('div');
-        this.handle.appendChild(document.createTextNode("<->"));
+        this.style = style;
+        this.setStyle(style);
+        this.handle.style.opacity = "0.5";
+        this.handle.addEventListener('mouseover', () => {
+            this.handle.style.opacity = "1";
+        });
+        this.handle.addEventListener('mouseleave', () => {
+            this.handle.style.opacity = "0.5";
+        });
+        this.startValue = 0;
+        this.isResizing = false;
+        this.previousDiv = previousDiv;
+        this.nextDiv = null;
+    }
+
+    public setPrecedingDiv(topOfHandle : HTMLElement) {
+        this.previousDiv = topOfHandle;
+    }
+
+    public setNextDiv(bottomOfHandle : HTMLElement | null) {
+        this.nextDiv = bottomOfHandle;
+    }
+
+    public getPrecedingDiv() : HTMLElement {
+        return this.previousDiv;
+    }
+
+    public getNextDiv() : HTMLElement | null {
+        return this.nextDiv;
+    }
+
+    public remove() {
+        this.handle.remove();
+    }
+
+    public getHandle() : HTMLElement {
+        return this.handle;
+    }
+
+    setStyle(style: Style): void {
+        this.style = style;
         this.handle.style.backgroundColor = style.getHeaderColor();
         this.handle.style.border = "1px solid " + style.getBorderColor();
         this.handle.style.color = style.getSelectableTextColor();
-        this.handle.classList.add("resizer-handle");
-        this.handle.style.height = "90%";
-        this.handle.style.width = "2%";
-        this.handle.style.marginLeft = "0.25%";
-        this.handle.style.marginRight = "0.25%";
-        parent.insertBefore(this.handle, parent.lastChild);
-        this.leftOfHandle = lastVisPanel;
-        this.rightOfHandle = null;
-        this.isResizing = false;
-        this.startX = 0;
-        this.handle.addEventListener('mousedown', (e) => {
-            this.startX = e.clientX;
-            this.isResizing = true;
-            document.addEventListener('mousemove', handleMouseMove);
-            document.addEventListener('mouseup', () => {
-                this.isResizing = false;
-                document.removeEventListener('mousemove', handleMouseMove);
-            });
-        });
-        const handleMouseMove = (e: MouseEvent) => {
-            if (this.isResizing) {
-                const width = e.clientX - this.startX;
-                const minWidth = window.getComputedStyle(this.leftOfHandle).getPropertyValue('min-width');
-                if (this.leftOfHandle.getBoundingClientRect().width <= parseInt(minWidth)) {
-                    return;
-                }
-                this.leftOfHandle.style.width = this.leftOfHandle.getBoundingClientRect().width + width + "px";
-                if (this.rightOfHandle != null) {
-                    this.rightOfHandle.style.width = this.rightOfHandle.getBoundingClientRect().width - width + "px";
-                }
-                this.startX = e.clientX;
-            }
-        };
-    }
-
-    public setLeftOfHandle(leftOfHandle : HTMLElement) {
-        this.leftOfHandle = leftOfHandle;
-    }
-
-    public setRightOfHandle(rightOfHandle : HTMLElement | null) {
-        this.rightOfHandle = rightOfHandle;
-    }
-
-    public getLeftOfHandle() : HTMLElement {
-        return this.leftOfHandle;
-    }
-
-    public getRightOfHandle() : HTMLElement | null {
-        return this.rightOfHandle;
-    }
-
-    remove() {
-        this.handle.remove();
     }
 }
 
-export class YResizingHandle {
-    handle : HTMLElement;
-    topOfHandle : HTMLElement;
-    bottomOfHandle : HTMLElement | null;
-    startY : number;
-    isResizing : boolean;
+/**
+ * A handle that resizes two divs along the x-axis
+ */
+export class XResizingHandle extends AbstractResizingHandle {
 
-    constructor(parent : HTMLElement, lastVisPanel : HTMLElement, style : Style) {
-        this.handle = document.createElement('div');
-        this.handle.appendChild(document.createTextNode("↕"));
-        style.applyToPanel(this.handle);
-        this.handle.style.backgroundColor = style.getHeaderColor();
-        this.handle.style.border = "1px solid " + style.getBorderColor();
-        this.handle.style.color = style.getSelectableTextColor();
-        this.handle.classList.add("resizer-handle");
-        this.handle.style.height = "3%";
-        this.handle.style.width = "90%";
-        this.handle.style.marginLeft = "5%";
-        this.handle.style.marginRight = "5%";
-        this.handle.style.marginBottom = "0.5%";
-        this.handle.style.cursor = "ns-resize";
-        parent.insertBefore(this.handle, parent.lastChild);
-        this.topOfHandle = lastVisPanel;
-        this.bottomOfHandle = null;
-        this.isResizing = false;
-        this.startY = 0;
+    constructor(lastVisPanel : HTMLElement, style : Style) {
+        super(lastVisPanel, style,);
+        this.handle.classList.add("resizer-handle-x");
+        this.previousDiv = lastVisPanel;
         this.handle.addEventListener('mousedown', (e) => {
-            this.startY = e.clientY;
+            this.startValue = e.clientX;
             this.isResizing = true;
             document.addEventListener('mousemove', handleMouseMove);
             document.addEventListener('mouseup', () => {
@@ -107,37 +81,50 @@ export class YResizingHandle {
         });
         const handleMouseMove = (e: MouseEvent) => {
             if (this.isResizing) {
-                const height = e.clientY - this.startY;
-                const minHeight = window.getComputedStyle(this.topOfHandle).getPropertyValue('min-height');
-                if (this.topOfHandle.getBoundingClientRect().height <= parseInt(minHeight)) {
+                const width = e.clientX - this.startValue;
+                const minWidth = window.getComputedStyle(this.previousDiv).getPropertyValue('min-width');
+                if (this.previousDiv.getBoundingClientRect().width <= parseInt(minWidth)) {
                     return;
                 }
-                this.topOfHandle.style.height = this.topOfHandle.getBoundingClientRect().height + height + "px";
-                if (this.bottomOfHandle != null) {
-                    this.bottomOfHandle.style.height = this.bottomOfHandle.getBoundingClientRect().height - height + "px";
+                this.previousDiv.style.width = this.previousDiv.getBoundingClientRect().width + width + "px";
+                if (this.nextDiv != null) {
+                    this.nextDiv.style.width = this.nextDiv.getBoundingClientRect().width - width + "px";
                 }
-                this.startY = e.clientY;
+                this.startValue = e.clientX;
             }
         };
     }
+}
 
-    public setTopOfHandle(topOfHandle : HTMLElement) {
-        this.topOfHandle = topOfHandle;
-    }
-
-    public setBottomOfHandle(bottomOfHandle : HTMLElement | null) {
-        this.bottomOfHandle = bottomOfHandle;
-    }
-
-    public getTopOfHandle() : HTMLElement {
-        return this.topOfHandle;
-    }
-
-    public getBottomOfHandle() : HTMLElement | null {
-        return this.bottomOfHandle;
-    }
-
-    remove() {
-        this.handle.remove();
+/**
+ * A handle that resizes two divs along the y-axis
+ */
+export class YResizingHandle extends AbstractResizingHandle {
+    constructor(lastVisPanel : HTMLElement, style : Style) {
+        super(lastVisPanel, style);
+        this.handle.classList.add("resizer-handle-y");
+        this.handle.addEventListener('mousedown', (e) => {
+            this.startValue = e.clientY;
+            this.isResizing = true;
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', () => {
+                this.isResizing = false;
+                document.removeEventListener('mousemove', handleMouseMove);
+            });
+        });
+        const handleMouseMove = (e: MouseEvent) => {
+            if (this.isResizing) {
+                const height = e.clientY - this.startValue;
+                const minHeight = window.getComputedStyle(this.previousDiv).getPropertyValue('min-height');
+                if (this.previousDiv.getBoundingClientRect().height <= parseInt(minHeight)) {
+                    return;
+                }
+                this.previousDiv.style.height = this.previousDiv.getBoundingClientRect().height + height + "px";
+                if (this.nextDiv != null) {
+                    this.nextDiv.style.height = this.nextDiv.getBoundingClientRect().height - height + "px";
+                }
+                this.startValue = e.clientY;
+            }
+        };
     }
 }

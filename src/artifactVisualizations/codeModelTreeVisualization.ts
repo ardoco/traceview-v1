@@ -1,6 +1,4 @@
 import * as d3 from "d3";
-import { HighlightingVisualization } from "./highlightingVisualization";
-import { UMLBase, UMLComponent, UMLInterface } from "../artifacts/uml";
 import { ACMPackage, CodeModel } from "../acmClasses";
 import { Config } from "../config";
 import { SVGBasedHighlightingVisualization } from "./svgbasedHighlightingVisualization";
@@ -108,7 +106,7 @@ export class CodeModelTreeVisualization extends SVGBasedHighlightingVisualizatio
 
     protected setElementsHighlightable(ids: string[]): void {
         for (let id of ids) {
-            if (!this.idIsHighlightable(id)) {              
+            if (!this.idIsHighlightable(id)) {
                 this.plot.selectAll('.node').filter((d : any) => d.id === id)
                     .attr('fill', this.style.getSelectableTextColor());
                 this.plot.selectAll('.node-label').filter((d : any) => d.id === id)
@@ -120,7 +118,7 @@ export class CodeModelTreeVisualization extends SVGBasedHighlightingVisualizatio
         for (let id of ids) {
             if (this.idIsHighlightable(id)) {
                 this.plot.selectAll('.node').filter((d : any) => d.id === id)
-                    .attr('fill', this.style.getNotSelectableTextColor());
+                    .attr('fill', this.style.getNotSelectableTextColor()).size();
                 this.plot.selectAll('.node-label').filter((d : any) => d.id === id)
                     .attr('fill', this.style.getNotSelectableTextColor());
             }
@@ -167,7 +165,18 @@ export class CodeModelTreeVisualization extends SVGBasedHighlightingVisualizatio
         }
     }
 
-    setStyle(style: Style): void {
+    setStyle(style: Style) {
         this.style = style;
+        this.plot.style("background-color", style.getPaperColor());
+        this.plot.selectAll('.link').attr('stroke', style.getNotSelectableTextColor());
+        // get all highlighted colors nodes and labels set them to style.getSelectableTextColor()
+        this.plot.selectAll('.node').filter((d : any) => this.idIsHighlightable(d.id))
+            .attr('fill', style.getSelectableTextColor());
+        this.plot.selectAll('.node-label').filter((d : any) => this.idIsHighlightable(d.id))
+            .attr('fill', style.getSelectableTextColor());
+        this.plot.selectAll('.node').filter((d : any) => !this.idIsHighlightable(d.id))
+            .attr('fill', style.getNotSelectableTextColor());
+        this.plot.selectAll('.node-label').filter((d : any) => !this.idIsHighlightable(d.id))
+            .attr('fill', style.getNotSelectableTextColor());
     }
 }

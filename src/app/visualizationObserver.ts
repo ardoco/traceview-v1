@@ -22,6 +22,14 @@ export class VisualizationMediator {
         this.colorSupplier = colorSupplier;
     }
 
+    /**
+     * Triggers a redraw of all active trace links
+     */
+    public redraw() : void {
+        this.clearDrawnHighlighting();
+        this.drawActiveLinks();
+    }
+
     private getVisualizationById(id : number) : HighlightingVisualization {
         const vis = this.visualizations.find((vis) => vis.getID() == id);
         if (vis == undefined) {
@@ -90,10 +98,18 @@ export class VisualizationMediator {
         return this.traceLinks.filter((link) => link.source == id).concat(this.traceLinks.filter((link) => link.target == id).map((link) => link.reversed()));
     }
 
+    /**
+     * Adds a listener to this {@link VisualizationMediator}
+     * @param listener The listener to be added
+     */
     public addListener(listener : TraceLinkListener) : void {
         this.listeners.push(listener);
     }
 
+    /**
+     * Gets the active trace links, i.e. the trace links that are currently being highlighted
+     * @returns The active trace links
+     */
     public getActiveLinks() : MediationTraceabilityLink[] {
         const active =[];
         for (let link of this.activeLinks) {
@@ -102,6 +118,10 @@ export class VisualizationMediator {
         return active
     }
         
+    /**
+     * Remove a visualization from this {@link VisualizationMediator}
+     * @param id The identifier of the visualization to be removed
+     */
     public removeVisualization(id : number) : void {
         this.clearDrawnHighlighting();
         for (let vis of this.visualizations) {
@@ -122,10 +142,18 @@ export class VisualizationMediator {
         this.drawActiveLinks();
     }
 
+    /**
+     * Gets the number of visualizations observed by this {@link VisualizationMediator}
+     * @returns The number of visualizations observed by this {@link VisualizationMediator}
+     */
     public getNumberOfVisualizations() : number {
         return this.visualizations.length;
     }
 
+    /**
+     * Appends a visualization to be observed.
+     * @param visualization The visualization to be observed
+     */
     public appendVisualization(visualization : HighlightingVisualization) : void {
         this.clearDrawnHighlighting();
         this.activeLinks = [];
@@ -153,6 +181,10 @@ export class VisualizationMediator {
         });
     }
 
+    /**
+     * Adds trace links to this {@link VisualizationMediator} based on which identifier in the observed visualizations will be set to highlightable
+     * @param traceLinks The trace links to add to this {@link VisualizationMediator}
+     */
     public addTraceLinks(traceLinks : MediationTraceabilityLink[]) : void {
         this.clearDrawnHighlighting();
         this.activeLinks = [];

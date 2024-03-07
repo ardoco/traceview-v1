@@ -11,7 +11,6 @@ export class NLHighlightingVisualization extends HighlightingVisualization {
     protected artifactVisualizations : Map<string,HTMLElement>;
     protected showUnselectable : boolean;
 
-    protected highlightableIds : string[];
     protected hideableRows : Map<string,HTMLElement> = new Map<string,HTMLElement>();
 
     constructor(viewport : HTMLElement, sentences : NLSentence[], highlightableIds : string[], style : Style) {
@@ -20,7 +19,6 @@ export class NLHighlightingVisualization extends HighlightingVisualization {
         this.showUnselectable = true;
         this.visualizedArtifacts = new Map<string,NLSentence>();
         this.artifactVisualizations = new Map<string,HTMLElement>();
-        this.highlightableIds = highlightableIds;
         this.hideableRows = new Map<string,HTMLElement>();
         for (let artifact of sentences) {
             this.visualizedArtifacts.set(artifact.getIdentifier(), artifact);
@@ -39,8 +37,8 @@ export class NLHighlightingVisualization extends HighlightingVisualization {
             artifactDiv.classList.add('sentence-item');
             if (this.idIsHighlightable(artifact.getIdentifier())) {
                 artifactDiv.style.cursor = "pointer";
-                artifactDiv.addEventListener('mouseover', () => artifactDiv.style.backgroundColor = "lightgrey");
-                artifactDiv.addEventListener('mouseout', () => artifactDiv.style.backgroundColor = "white");
+                artifactDiv.addEventListener('mouseover', () => artifactDiv.style.backgroundColor = this.style.getHoverColor());
+                artifactDiv.addEventListener('mouseout', () => artifactDiv.style.backgroundColor = this.style.getPaperColor());
             } else {
                 artifactDiv.style.color = this.style.getNotSelectableTextColor();
             }
@@ -61,6 +59,7 @@ export class NLHighlightingVisualization extends HighlightingVisualization {
             i++;
         }
     }
+    
     getButtons(): UIButton[] {
         const buttons : UIButton[] = [
             new UIButton("👁", "Show/Hide Unhighlightable Sentences", () => {
@@ -115,16 +114,14 @@ export class NLHighlightingVisualization extends HighlightingVisualization {
     }
 
     setStyle(style: Style): void {
-        const oldStyle = this.style;
         this.style = style;
         this.viewportDiv.style.backgroundColor = this.style.getPaperColor();
-        for (let id of this.artifactVisualizations.keys()) {
-            for (let artifactVisualization of this.artifactVisualizations.values()) {
-                if (artifactVisualization.style.color == oldStyle.getNotSelectableTextColor()) {
-                    artifactVisualization.style.color = this.style.getNotSelectableTextColor();
-                } else if (artifactVisualization.style.color == oldStyle.getSelectableTextColor()) {
-                    artifactVisualization.style.color = this.style.getSelectableTextColor();
-                }
+        for (let id of this.visualizedArtifacts.keys()) {
+            const item = this.artifactVisualizations.get(id)!;
+            if (this.idIsHighlightable(id)) {
+                item.style.color = this.style.getSelectableTextColor();
+            } else {
+                item.style.color = this.style.getNotSelectableTextColor();
             }
         }
     }

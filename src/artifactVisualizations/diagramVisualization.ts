@@ -6,6 +6,9 @@ import { HighlightingVisualization } from "./highlightingVisualization";
 import { SVGBasedHighlightingVisualization } from "./svgbasedHighlightingVisualization";
 import * as d3 from 'd3';
 
+/**
+ * A visualization that displays an image with the highligtable artifacts corresponding to labeled axis-aligned boxes.
+ */
 export class DiagramVisualization extends HighlightingVisualization {
 
     private readonly zoomMinFactor = 0.1;
@@ -25,6 +28,15 @@ export class DiagramVisualization extends HighlightingVisualization {
     protected drawnRects : Map<string,d3.Selection<SVGRectElement, unknown, null, undefined>> = new Map<string,d3.Selection<SVGRectElement, unknown, null, undefined>>();
     protected drawnLabels : Map<string,d3.Selection<SVGTextElement, unknown, null, undefined>> = new Map<string,d3.Selection<SVGTextElement, unknown, null, undefined>>();
     
+    // TODO: boxes and ids are passed why? if they need to be passed, why are extra ids necessary?
+    /**
+     * Creates a new diagram visualization.
+     * @param viewport The HTML element the visualization will used to display it's content in 
+     * @param imageData The image to be displayed
+     * @param aabbs The displayable axis-aligned boxes
+     * @param highlightableIds A list of ids, eahc corresponding each to the highlightable box of at the same index in aabbs
+     * @param style A {@link Style} object that defines the visualization's appearance
+     */
     constructor(viewport : HTMLElement, imageData : string, aabbs : ArtefactAABB[], highlightableIds: string[], style : Style) {
         super(highlightableIds, Config.DIAGRAM_VIS_TITLE, style);
         for (let box of aabbs) {
@@ -142,10 +154,10 @@ export class DiagramVisualization extends HighlightingVisualization {
         }
     }
     protected setElementsHighlightable(ids: string[]): void {
-        //
+        // for visual clarity, boxes are only displayed when they are highlighted, so there is not reason to show anything here
     }
     protected setElementsNotHighlightable(ids: string[]): void {
-        //
+        // for visual clarity, boxes are only displayed when they are highlighted, so there is not reason to show anything here
     }
     public getName(id: string): string {
         return this.boxes.get(id)!.getTextBox().getText();
