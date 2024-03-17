@@ -1,10 +1,7 @@
-name: TraceView Deployment
+name: TraceView CI
 
 on:
  workflow_dispatch:
- push:
-    branches:
-      - main
  pull_request:
     types: [opened, synchronize, reopened]
 
