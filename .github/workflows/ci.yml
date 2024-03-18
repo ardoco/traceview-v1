@@ -1,13 +1,13 @@
-name: TraceView Deployment
+name: TraceView CI
 
 on:
  workflow_dispatch:
- push:
-    branches:
-      - main
+ pull_request:
+    types: [opened, synchronize, reopened]
+
       
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout 🛎️
@@ -21,9 +21,3 @@ jobs:
         run: |
           npm install
           npm run build
-
-      - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@v4.5.0
-        with:
-          branch: gh-pages
-          folder: dist
