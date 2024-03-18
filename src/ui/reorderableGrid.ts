@@ -2,6 +2,9 @@ import { Style, StyleableUIElement } from '../style';
 import { ReorderableRow, ReorderableRowContent } from './reorderableRow';
 import { YResizingHandle } from './resizingHandle';
 
+/**
+ * This class represents a grid of reorderable rows. Elements can be resized by dragging handles added to the grid for the purpose and can be moved between rows by dragging and dropping them.
+ */
 export class ReorderableGrid implements StyleableUIElement {
     protected rows : ReorderableRow[] = [];
     protected handles : YResizingHandle[] = [];
@@ -18,6 +21,11 @@ export class ReorderableGrid implements StyleableUIElement {
         }
     }
 
+    /**
+     * Instantiates a new ReorderableGrid with the given viewport and style.
+     * @param viewport The viewport, i.e. the element that will contain the grid
+     * @param style A Style object that will be used to style the grid
+     */
     constructor(viewport : HTMLElement, style : Style) {
         this.viewport = viewport;
         this.viewport.style.paddingBottom = "20px";
@@ -64,6 +72,10 @@ export class ReorderableGrid implements StyleableUIElement {
         });
     }
 
+    /**
+     * Removes an element from the grid.
+     * @param element The element to remove.
+     */
     public remove(element : HTMLElement) {
         for (let row of this.rows) {
             for (let child of row.getRow().children) {
@@ -75,6 +87,9 @@ export class ReorderableGrid implements StyleableUIElement {
         }
     }
 
+    /**
+     * Appends an element to the grid. The element will be placed in the first row.
+     */
     public append(element : HTMLElement, dragHandle : HTMLElement) {
         this.rows[0].append(element, dragHandle);
     }

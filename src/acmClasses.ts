@@ -1,13 +1,24 @@
+/**
+ * A repository for ACMPackage objects.
+ */
 export class CodeModel {
     protected rootPackages : ACMPackage[];
     constructor(rootPackages : ACMPackage[]) {
         this.rootPackages = rootPackages.map((rootPackage) => rootPackage);
     }
 
+    /**
+     * Get the root packages of the code model.
+     */
     public getRootPackages() : ACMPackage[] {
         return this.rootPackages;
     }   
 
+    /**
+     * Returns the element with the given id, or null if no such element exists.
+     * @param id The id of the element to return
+     * @returns The element or null
+     */
     public getElement(id : string) : AbstractACMUnit | null {
         for (let rootPackage of this.rootPackages) {
             const element = rootPackage.getElement(id);
@@ -19,6 +30,9 @@ export class CodeModel {
     }
 }
 
+/**
+ * Ab astract super class for all elements of the code model.
+ */
 export abstract class AbstractACMUnit {
 
     id : string;
@@ -34,6 +48,9 @@ export abstract class AbstractACMUnit {
     }
 }
 
+/**
+ * This class represents a package in the code model.
+ */
 export class ACMPackage extends AbstractACMUnit {
     protected childPackages : ACMPackage[];
     protected compilationUnits : ACMCodeCompilationUnit[];
@@ -44,14 +61,26 @@ export class ACMPackage extends AbstractACMUnit {
         this.compilationUnits = compilationUnits.map((compilationUnit) => compilationUnit);
     }
 
+    /**
+     * Gets the sub packages of this package.
+     * @returns An array of sub packages
+     */
     public getSubPackages() : ACMPackage[] {
         return this.childPackages;
     }
 
+    /**
+     * Gets the compilation units of this package.
+     * @returns An array of compilation units
+     */
     public getCompilationUnits() : ACMCodeCompilationUnit[] {
         return this.compilationUnits;
     }
 
+    /**
+     * Sets the id of this package and all its sub packages and compilation units to a path based on the given prefix.
+     * @param pathPrefix The prefix
+     */
     public setIdToPath(pathPrefix : string) {
         this.id = pathPrefix + this.name + "/";
         for (let childPackage of this.childPackages) {
@@ -61,7 +90,7 @@ export class ACMPackage extends AbstractACMUnit {
             compilationUnit.setIdToPath(this.id);
         }
     }
-
+    
     public getElement(id : string) : AbstractACMUnit | null {
         if (this.id === id) {
             return this;
@@ -82,6 +111,9 @@ export class ACMPackage extends AbstractACMUnit {
     }
 }
 
+/**
+ * Abstract super class for all elements of the code model that contain other elements.
+ */
 abstract class AbstractACMUnitWithContent<T extends AbstractACMUnit> extends AbstractACMUnit {
     
     protected content : T[];

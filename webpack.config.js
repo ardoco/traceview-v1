@@ -6,7 +6,6 @@ module.exports = {
   entry: {
     bundle: [
       './src/abstractUI.ts',
-      './src/config.ts',
       './src/classes.ts',
       './src/acmClasses.ts',
       './src/artifacts/uml.ts',
@@ -18,7 +17,6 @@ module.exports = {
       './src/app/visualizationObserver.ts',
       './src/app/application.ts',
       './src/utils.ts',
-      './src/ui/initVisPopup.ts',
       './src/main.ts',
       './src/colorSupplier.ts',
       './src/uiFactory.ts',

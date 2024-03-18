@@ -9,7 +9,7 @@ export interface TraceLinkListener {
     reportClosed(index : number) : void;
 }
 
-export class VisualizationMediator {
+export class VisualizationObserver {
 
     protected traceLinks : MediationTraceabilityLink[] = [];
     protected visualizations : HighlightingVisualization[] = [];
@@ -42,8 +42,8 @@ export class VisualizationMediator {
         for (let link of this.activeLinks) {
             const sourceVis = this.visualizations.find((vis) => vis.getID() == link.sourceVisIndex)!;
             const targetVis = this.visualizations.find((vis) => vis.getID() == link.targetVisIndex)!;
-            sourceVis.setUnhighlighted(link.source);
-            targetVis.setUnhighlighted(link.target);
+            sourceVis.unhighlight(link.source);
+            targetVis.unhighlight(link.target);
         }
     }
 
@@ -99,7 +99,7 @@ export class VisualizationMediator {
     }
 
     /**
-     * Adds a listener to this {@link VisualizationMediator}
+     * Adds a listener to this {@link VisualizationObserver}
      * @param listener The listener to be added
      */
     public addListener(listener : TraceLinkListener) : void {
@@ -119,7 +119,7 @@ export class VisualizationMediator {
     }
         
     /**
-     * Remove a visualization from this {@link VisualizationMediator}
+     * Remove a visualization from this {@link VisualizationObserver}
      * @param id The identifier of the visualization to be removed
      */
     public removeVisualization(id : number) : void {
@@ -143,8 +143,8 @@ export class VisualizationMediator {
     }
 
     /**
-     * Gets the number of visualizations observed by this {@link VisualizationMediator}
-     * @returns The number of visualizations observed by this {@link VisualizationMediator}
+     * Gets the number of visualizations observed by this {@link VisualizationObserver}
+     * @returns The number of visualizations observed by this {@link VisualizationObserver}
      */
     public getNumberOfVisualizations() : number {
         return this.visualizations.length;
@@ -182,16 +182,19 @@ export class VisualizationMediator {
     }
 
     /**
-     * Adds trace links to this {@link VisualizationMediator} based on which identifier in the observed visualizations will be set to highlightable
-     * @param traceLinks The trace links to add to this {@link VisualizationMediator}
+     * Adds trace links to this {@link VisualizationObserver} based on which identifier in the observed visualizations will be set to highlightable
+     * @param traceLinks The trace links to add to this {@link VisualizationObserver}
      */
     public addTraceLinks(traceLinks : MediationTraceabilityLink[]) : void {
         this.clearDrawnHighlighting();
         this.activeLinks = [];
         this.traceLinks = this.traceLinks.concat(traceLinks);
+        console.log(traceLinks[0]);
         for (let vis of this.visualizations) {
-            vis.setHighlightable(this.traceLinks.filter((link) => link.sourceVisIndex == vis.getID()).map((link) => link.source));
-            vis.setHighlightable(this.traceLinks.filter((link) => link.targetVisIndex == vis.getID()).map((link) => link.target));
+            const idsFromOutgoing = this.traceLinks.filter((link) => link.sourceVisIndex == vis.getID()).map((link) => link.source);
+            const idsFromIncoming = this.traceLinks.filter((link) => link.targetVisIndex == vis.getID()).map((link) => link.target);
+            console.log("Setting highlightable for " + vis.getID() + " to " + idsFromOutgoing.length + " " + idsFromIncoming.length);
+            vis.setHighlightable(idsFromOutgoing.concat(idsFromIncoming));
         }
     }
 }

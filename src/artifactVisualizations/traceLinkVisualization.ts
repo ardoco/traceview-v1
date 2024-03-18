@@ -1,4 +1,4 @@
-import { Buttoned, UIButton } from "../abstractUI";
+import { Buttoned, ConceptualUIButton } from "../abstractUI";
 import { TraceLinkListener } from "../app/visualizationObserver";
 import { TraceabilityLink } from "../classes";
 import { Style, StyleableUIElement } from "../style";
@@ -28,16 +28,17 @@ export class TraceLinkVisualization extends Closeable implements Buttoned, Trace
         this.lastReportedState = [];
         this.redraw();
     }
-    setStyle(style: Style): void {
+    
+    public setStyle(style: Style): void {
         this.style = style;
         style.applyToPanel(this.viewport);
         this.viewport.style.backgroundColor = style.getPaperColor();
         this.viewport.style.fontSize = this.maxFontSize + "px";
         this.colorSelectable = style.getSelectableTextColor();
-        this.redraw();
+        this.redraw(); 
     }
 
-    redraw(): void {
+    private redraw(): void {
         this.viewport.innerHTML = "";
         this.viewport.classList.add("uiBigColumn");
         this.viewport.style.alignItems = "start";
@@ -72,7 +73,7 @@ export class TraceLinkVisualization extends Closeable implements Buttoned, Trace
     }
 
 
-    reportStateChanged(links: TraceabilityLink[], colors: string[], names: string[][]): void {
+    public reportStateChanged(links: TraceabilityLink[], colors: string[], names: string[][]): void {
         this.lastReportedState = [];
         for (let i = 0; i < links.length; i++) {
             const link = links[i];
@@ -84,11 +85,11 @@ export class TraceLinkVisualization extends Closeable implements Buttoned, Trace
         this.redraw();
     }
 
-    reportClosed(index : number) : void {
+    public reportClosed(index : number) : void {
         this.redraw();
     }
 
-    getButtons(): UIButton[] {
-        return [new UIButton(UIButton.SYMBOL_CLOSE, "Close", () => {this.shouldClose(); return true;})];
+    getButtons(): ConceptualUIButton[] {
+        return [new ConceptualUIButton(ConceptualUIButton.SYMBOL_CLOSE, "Close", () => {this.shouldClose(); return true;})];
     }
 }

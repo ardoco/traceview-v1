@@ -1,7 +1,12 @@
 import { FileManager } from "../app/fileManager";
-import { Config } from "../config";
 import { Style } from "../style";
 
+/**
+ * Creates a button that opens the file manager panel when hovered over
+ * @param buttonParent The {@link HTMLElement} the button should be attached to as a child
+ * @param fileManager The underlying file manager
+ * @param style A {@link Style} object to be used to set the appearance of the button
+ */
 export function fabricateFileManagerPanelButton(buttonParent : HTMLElement, fileManager: FileManager, style : Style) {
     const button = document.createElement('div');
     buttonParent.appendChild(button);
@@ -15,7 +20,7 @@ export function fabricateFileManagerPanelButton(buttonParent : HTMLElement, file
     button.style.color = style.getSelectableTextColor();
     button.classList.add("appheader-button");
     const setButtonActive = (active : boolean) => {
-        button.innerHTML = (active ? Config.FILE_ICON_OPEN : Config.FILE_ICON) + fileManager.getAllFileNames().length;
+        button.innerHTML = (active ? "📂" : "📁") + fileManager.getAllFileNames().length;
         button.style.textShadow = active ? "2px 2px 5px " + style.getFadedBorderColor() : "none";
     }
     setButtonActive(false);
@@ -51,6 +56,14 @@ export function fabricateFileManagerPanelButton(buttonParent : HTMLElement, file
     });
 }
 
+/**
+ * Creates a panel that displays the file manager's content. Each entry in the panel corresponds to a file in the file manager
+ * and a preview of the truncated file content will be displayed if the mouse hovers over the entry.
+ * @param fileManager The underlying file manager
+ * @param popupPosition The position of the panel in pixel screen coordinates
+ * @param buttonSize The size of the button that opens the panel
+ * @param style A {@link Style} object to be used to set the appearance of the panel
+ */
 export function fabricateFileManagerPanel(fileManager : FileManager, popupPosition : [number,number], buttonSize : number, style : Style) {
     const tooltipWidth = 300;
     const tooltipHeight = 300;
@@ -91,6 +104,7 @@ export function fabricateFileManagerPanel(fileManager : FileManager, popupPositi
         entry.addEventListener("mouseenter", () => {
             const preview = document.createElement('div');
             preview.style.position = "absolute";
+            preview.style.overflow = "hidden";
             preview.style.left = outerPanel.getBoundingClientRect().right - 5 - outerWidth - tooltipWidth + "px";
             preview.style.top = outerPanel.getBoundingClientRect().top + "px";
             preview.style.width = tooltipWidth + "px";

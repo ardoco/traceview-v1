@@ -1,4 +1,4 @@
-import { Buttoned, UIButton } from "../abstractUI";
+import { Buttoned, ConceptualUIButton } from "../abstractUI";
 import { Style, StyleableUIElement } from "../style";
 
 /**
@@ -16,7 +16,7 @@ export interface HighlightingListener {
 export interface HighlightingSubject {
     addHighlightingListener(listener : HighlightingListener) : void;
     highlight(id : string, color : string) : void;
-    setUnhighlighted(id : string) : void;
+    unhighlight(id : string) : void;
 }
 
 export abstract class HighlightingVisualization implements HighlightingSubject, Buttoned, StyleableUIElement {
@@ -28,10 +28,15 @@ export abstract class HighlightingVisualization implements HighlightingSubject, 
 
     protected style : Style;
 
-    constructor(highlightableIds : string[], title : string, style : Style) {
+    /**
+     * 
+     * @param title A human-readable title of the visualization
+     * @param style A {@link Style} object that defines the visualization's appearance
+     */
+    constructor(title : string, style : Style) {
         this.highlightingListeners = [];
         this.title = title;
-        this.currentlyHighlighted = new Map<string,boolean>(highlightableIds.map((id) => [id,false]));
+        this.currentlyHighlighted = new Map<string,boolean>();
         this.style = style;
         this.id = Date.now();
     }
@@ -60,11 +65,11 @@ export abstract class HighlightingVisualization implements HighlightingSubject, 
     }
 
     /**
-     * Gets the {@link UIButton}s this visualization provides.
-     * @returns The {@link UIButton}s this visualization provides
+     * Gets the {@link ConceptualUIButton}s this visualization provides.
+     * @returns The {@link ConceptualUIButton}s this visualization provides
      */
-    getButtons(): UIButton[] {
-        return [new UIButton(UIButton.SYMBOL_ERASE, "Clear Highlighting", () => {this.unhighlightAll(); return true;}), new UIButton(UIButton.SYMBOL_CLOSE, "Close", () => {this.shouldClose(); return true;})];
+    getButtons(): ConceptualUIButton[] {
+        return [new ConceptualUIButton(ConceptualUIButton.SYMBOL_ERASE, "Clear Highlighting", () => {this.unhighlightAll(); return true;}), new ConceptualUIButton(ConceptualUIButton.SYMBOL_CLOSE, "Close", () => {this.shouldClose(); return true;})];
     }
 
     /**
@@ -101,7 +106,7 @@ export abstract class HighlightingVisualization implements HighlightingSubject, 
      * Unhighlights the artifact with the specified identifier in the visualization.
      * @param id The target artifact's identifier
      */
-    public setUnhighlighted(id: string): void {
+    public unhighlight(id: string): void {
         this.unhighlightElement(id);
         this.currentlyHighlighted.set(id, false);
     }
@@ -145,6 +150,8 @@ export abstract class HighlightingVisualization implements HighlightingSubject, 
      */
     public setHighlightable(ids : string[]) : void {
         const idsToChange = ids.filter((id) => !this.idIsHighlightable(id));
+        console.log(this.constructor.name + " received " + ids.length);
+        console.log(idsToChange);
         this.setElementsHighlightable(idsToChange);
         for (let id of idsToChange) {
             this.currentlyHighlighted.set(id, false);

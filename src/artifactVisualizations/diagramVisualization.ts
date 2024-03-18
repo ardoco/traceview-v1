@@ -1,9 +1,7 @@
-import { UIButton } from "../abstractUI";
+import { ConceptualUIButton } from "../abstractUI";
 import { ArtefactAABB } from "../artifacts/aabb";
-import { Config } from "../config";
 import { Style } from "../style";
 import { HighlightingVisualization } from "./highlightingVisualization";
-import { SVGBasedHighlightingVisualization } from "./svgbasedHighlightingVisualization";
 import * as d3 from 'd3';
 
 /**
@@ -28,7 +26,6 @@ export class DiagramVisualization extends HighlightingVisualization {
     protected drawnRects : Map<string,d3.Selection<SVGRectElement, unknown, null, undefined>> = new Map<string,d3.Selection<SVGRectElement, unknown, null, undefined>>();
     protected drawnLabels : Map<string,d3.Selection<SVGTextElement, unknown, null, undefined>> = new Map<string,d3.Selection<SVGTextElement, unknown, null, undefined>>();
     
-    // TODO: boxes and ids are passed why? if they need to be passed, why are extra ids necessary?
     /**
      * Creates a new diagram visualization.
      * @param viewport The HTML element the visualization will used to display it's content in 
@@ -37,8 +34,8 @@ export class DiagramVisualization extends HighlightingVisualization {
      * @param highlightableIds A list of ids, eahc corresponding each to the highlightable box of at the same index in aabbs
      * @param style A {@link Style} object that defines the visualization's appearance
      */
-    constructor(viewport : HTMLElement, imageData : string, aabbs : ArtefactAABB[], highlightableIds: string[], style : Style) {
-        super(highlightableIds, Config.DIAGRAM_VIS_TITLE, style);
+    constructor(viewport : HTMLElement, imageData : string, aabbs : ArtefactAABB[], name : string, style : Style) {
+        super(name, style);
         for (let box of aabbs) {
             this.boxes.set(box.getIdentifier(), box);
         }
@@ -101,13 +98,13 @@ export class DiagramVisualization extends HighlightingVisualization {
         image.onload = onLoad;
     }
 
-    getButtons(): UIButton[] {
-        return [new UIButton("[]", "draw all", () => {
+    getButtons(): ConceptualUIButton[] {
+        return [new ConceptualUIButton("[]", "draw all", () => {
             for (let id of this.boxes.keys()) {
                 this.highlightElement(id, "red");
             }
             return true;
-        }), new UIButton("_", "clear all", () => {
+        }), new ConceptualUIButton("_", "clear all", () => {
             for (let id of this.boxes.keys()) {
                 this.unhighlightElement(id);
             }

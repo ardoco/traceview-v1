@@ -1,13 +1,21 @@
 export interface StyleableUIElement {
+    /**
+     * Sets the style of the element to the given style
+     * @param style The style to set
+     */
     setStyle(style : Style) : void;
 }
 
 export interface StyleableButtonElement {
+    /**
+     * Sets the style of the button to the given style
+     * @param style The style to set
+     */
     setStyle(style : ButtonStyle) : void;
 }
 
 /**
- * Convenience interface to be able to only specify the properties of a button style that can not be drawn from the style object
+ * Convenience interface to be able to only specify the properties of a button style that can not be derived from the style object when. Intended to be used when creating a new style object.
  */
 interface ProtoButtonStyle {
     backgroundColor : string;
@@ -84,8 +92,9 @@ export class Style {
         "rgb(110,110,110)",
         "rgb(200,200,200)",
         "white",
+        "rgb(240,240,240)", 
         "black",
-        "rgb(240,240,240)", {backgroundColor: "white", hoverBackgroundColor:  "rgb(220,220,220)", downBackgroundColor: "rgb(150,150,150)"});
+        {backgroundColor: "white", hoverBackgroundColor:  "rgb(220,220,220)", downBackgroundColor: "rgb(150,150,150)"});
     public static readonly NIGHT = new Style(
         "rgb(255,255,255)",
         "rgb(130,130,130)",

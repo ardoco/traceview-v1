@@ -1,7 +1,6 @@
 import { NLSentence } from '../classes';
 import { HighlightingVisualization} from './highlightingVisualization';
-import { UIButton } from '../abstractUI';
-import { Config } from '../config';
+import { ConceptualUIButton } from '../abstractUI';
 import { Style } from '../style';
 
 export class NLHighlightingVisualization extends HighlightingVisualization {
@@ -13,8 +12,15 @@ export class NLHighlightingVisualization extends HighlightingVisualization {
 
     protected hideableRows : Map<string,HTMLElement> = new Map<string,HTMLElement>();
 
-    constructor(viewport : HTMLElement, sentences : NLSentence[], highlightableIds : string[], style : Style) {
-        super(highlightableIds, Config.NLVIS_TITLE, style);
+    /**
+     * Instantiates a new NLHighlightingVisualization object
+     * @param viewport The viewport the visualization should be attached to
+     * @param sentences A list of sentences to be visualized
+     * @param name A human readable name for the visualization
+     * @param style A {@link Style} object that defines the visualization's appearance
+     */
+    constructor(viewport : HTMLElement, sentences : NLSentence[], name : string, style : Style) {
+        super(name, style);
         viewport.style.overflow = "auto";
         this.showUnselectable = true;
         this.visualizedArtifacts = new Map<string,NLSentence>();
@@ -47,9 +53,7 @@ export class NLHighlightingVisualization extends HighlightingVisualization {
             rowDiv.appendChild(artifactDiv);
             this.viewportDiv.appendChild(rowDiv);
             this.artifactVisualizations.set(artifact.getIdentifier(), artifactDiv);
-            if (!highlightableIds.includes(artifact.getIdentifier())) {
-                this.hideableRows.set(artifact.getIdentifier(), rowDiv);
-            }
+            this.hideableRows.set(artifact.getIdentifier(), rowDiv);
             artifactDiv.addEventListener('click', () => {
                 this.toggleHighlight(artifact.getIdentifier());
             });
@@ -60,9 +64,9 @@ export class NLHighlightingVisualization extends HighlightingVisualization {
         }
     }
     
-    getButtons(): UIButton[] {
-        const buttons : UIButton[] = [
-            new UIButton("👁", "Show/Hide Unhighlightable Sentences", () => {
+    getButtons(): ConceptualUIButton[] {
+        const buttons : ConceptualUIButton[] = [
+            new ConceptualUIButton("👁", "Show/Hide Unhighlightable Sentences", () => {
                 this.showUnselectable = !this.showUnselectable;
                 for (let id of this.hideableRows.keys()) {
                     this.hideableRows.get(id)!.style.display = this.showUnselectable ? "flex" : "none";

@@ -39,6 +39,7 @@ export class ReorderableRow implements StyleableUIElement {
         this.content.push({element : element, dragHandle : dragHandle, handleToTheRight : handle});
         this.row.appendChild(element);
         this.row.appendChild(handle.getHandle());
+        dragHandle.style.cursor = "grab";
     }
 
     /**

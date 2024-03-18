@@ -1,7 +1,5 @@
 import { FileManager } from "../app/fileManager";
 import { VisualizationFactory, VisualizationType } from "../artifactVisualizations/visFactory";
-import { MediationTraceabilityLink } from "../concepts/mediationTraceLink";
-import { Config } from "../config";
 import { ButtonStyle, Style } from "../style";
 
 /**
@@ -13,10 +11,17 @@ export class Picker {
 
     protected select : HTMLSelectElement;
 
+    /**
+     * A facade for a dropdown menu that allows the user to select a string from a list of options. Intended to be used to select filesNames among the files in the {@link FileManager}.
+     * @param style A style object to define the dropdown menu's appearance
+     * @param options The list of possible options for the dropdown menu
+     * @param fontSizeInPx The font size in pixels
+     * @param allowEmpty Whether or not the dropdown menu should have an empty option, if it does, the empty option will be the initially selected and first option in the list
+     */
     constructor(style : Style, options : string[], fontSizeInPx : number, allowEmpty : boolean) {
         this.listeners = [];
         this.select = document.createElement("select");
-        const actualOptions = allowEmpty ? [Config.EMPTY].concat(options) : options;
+        const actualOptions = allowEmpty ? ["-"].concat(options) : options;
         for (let option of actualOptions) {
             const optionElement = document.createElement("option");
             optionElement.value = option;
@@ -24,7 +29,7 @@ export class Picker {
             this.select.appendChild(optionElement);
         }
         this.select.addEventListener("change", () => {
-            if (this.select.value != Config.EMPTY) {
+            if (this.select.value != "-") {
                 this.listeners.forEach((listener) => listener(this.select.value));
             }
         });
@@ -122,6 +127,11 @@ function createATitledPanel(titleLabel : string, style : Style, fontSizeInPx : n
     return [popup, overlay];
 }
 
+/**
+ * A helper function to set a button's behaviour when, hovered over and clicked
+ * @param button The target button element
+ * @param style A style object to define the button's appearance
+ */
 function setButtonColorBehavior(button : HTMLElement, style : ButtonStyle) {
     button.addEventListener('mouseover', () => {
         button.style.backgroundColor = style.getButtonHoverColor();
@@ -266,17 +276,23 @@ function fabricateSwitchablePairPickerRow(parent : HTMLElement, label : string, 
  * @param otherVisNames The names of the application's currently active visualizations
  * @param style A style object to define the panel's appearance
  */
-export function fabricateNewTraceLinksPopupPanel(sendToApp : ((data: (string |null)[], switchOrder : boolean[]) => boolean), otherVisNames: string[], style: Style): void {
+export function fabricateNewTraceLinksPopupPanel(sendToApp : ((data: (string |null)[], switchOrder : boolean[]) => boolean), otherVisNames: string[], fileManager : FileManager, style: Style): void {
     const fontSize = 25;
     const popupAndOverlay = createATitledPanel("Add Trace-Links:", style, fontSize);
     const popup = popupAndOverlay[0];
     const overlay = popupAndOverlay[1];
     const switchStates = otherVisNames.map((name) => false);
     const pickers : Picker[] = [];
-    for (let otherVisName of otherVisNames) {
-        for (let otherVisName2 of otherVisNames) {
-            const ddm = fabricateSwitchablePairPickerRow(popup, "TLs", [otherVisName, otherVisName2], style, otherVisNames, fontSize, true, (newState : boolean) => {
+    for (let i = 0; i < otherVisNames.length; i++) {
+        for (let j = i; j < otherVisNames.length; j++) {
+            const otherVisName = otherVisNames[i];
+            const otherVisName2 = otherVisNames[j];
+            if (otherVisName == otherVisName2) {
+                continue;
+            }
+            const ddm = fabricateSwitchablePairPickerRow(popup, "TLs", [otherVisName, otherVisName2], style, fileManager.getAllFileNames(), fontSize, true, (newState : boolean) => {
                 switchStates[otherVisNames.indexOf(otherVisName)] = newState;
+                console.log(switchStates);
             });
             pickers.push(ddm);
         }

@@ -1,11 +1,17 @@
 import { UMLInterface, UMLComponent, UMLModel } from "../artifacts/uml";
 
+/**
+ * The types a token can have
+ */
 enum TokenType {
     OPEN,
     CLOSE,
     ATTRIBUTE
 }
 
+/**
+ * Helper class for parsing. Each token holds a substring of the orginal string and has a type.
+ */
 class Token {
     type : TokenType;
     value : string;
@@ -15,6 +21,11 @@ class Token {
     }
 }
 
+/**
+ * Lexes a string into a token stream
+ * @param content The string to be lexed
+ * @returns A list of tokens
+ */
 function lex(content : string) : Token[] {
     let tokens : Token[] = [];
     let elements : string[] = content.split(" ").filter((s) => s.length > 0)
@@ -34,6 +45,12 @@ function lex(content : string) : Token[] {
     return tokens;
 }
 
+/**
+ * Parses a xml object from the token stream
+ * @param tokens The token stream
+ * @param index The index of the current token
+ * @returns A tuple containing the new index and the object's attributes
+ */
 function parseLeaf(tokens : Token[], index : number) : [number, Map<string,string>] {
     let attributes : Map<string,string> = new Map<string,string>();
     while(tokens[index].type != TokenType.OPEN && tokens[index].type != TokenType.CLOSE) {
@@ -47,6 +64,12 @@ function parseLeaf(tokens : Token[], index : number) : [number, Map<string,strin
     return [index,attributes];
 }
 
+/**
+ * Parse a owned operation tuple from the token stream
+ * @param tokens The token stream
+ * @param index  The index of the current token
+ * @returns A tuple containing the new index and the parsed operation's identifier and name
+ */
 function parseOwnedOperation(tokens : Token[], index : number) : [number,{identifier : string, name : string}] {
     let content = parseLeaf(tokens, index);
     index = content[0];
@@ -76,6 +99,12 @@ function parseInterfaceRealization(tokens : Token[], index : number) : [number,{
     throw new Error("Missing at least one of xmi:id, client, supplier or contract attribute for interface realization");
 }
 
+/**
+ * Parses a usage tuple from the token stream
+ * @param tokens The token stream
+ * @param index The index of the current token
+ * @returns A tuple containing the new index and the parsed usage's identifier, source and target
+ */
 function parseUsage(tokens : Token[], index : number) : [number,{identifier : string, sourceId : string, targetId : string}] {
     let content = parseLeaf(tokens, index);
     let attributes = content[1];
@@ -92,6 +121,11 @@ function parseUsage(tokens : Token[], index : number) : [number,{identifier : st
     throw new Error("Missing at least one of xmi:id, client or supplier attribute for usage");
 }
 
+/**
+ * Parses a UML model from a string
+ * @param content The string to be parsed
+ * @returns A {@link UMLModel} object deserialized from the string
+ */
 export function parseUML(content : string) : UMLModel {
     let contentWithoutFirstAndlastLine = content.substring(content.indexOf("<p"), content.lastIndexOf("</"));
     let cleanContent = contentWithoutFirstAndlastLine.replace(/\n/g, ' ');
@@ -109,6 +143,9 @@ export function parseUML(content : string) : UMLModel {
             while(tokens[i].type != TokenType.OPEN) {
                 let key = tokens[i].value.split("=")[0];
                 let value = tokens[i].value.split("=")[1];
+                if (key == undefined || value == undefined) {
+                    throw new Error("Could not parse key or value for attribute: " + tokens[i].value + " at index " + i);
+                }
                 attributes.set(key,value.substring(1,value.length-1));
                 i++;
             } 

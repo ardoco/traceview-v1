@@ -109,6 +109,7 @@ async function init(fileManager : FileManager) {
   fileManager.addTextFile("teastore.txt", await load(urlPrefix + "text_2020/teastore.txt"));
   fileManager.addTextFile("teastore.uml", await load(urlPrefix + "model_2020/uml/teastore.uml"));
   fileManager.addTextFile("codeModel.acm", await load(urlPrefix + "model_2022/code/codeModel.acm"));
+  fileManager.addTextFile("diagramData.json", await load(urlPrefix + "goldstandards/goldstandard_sad_id_2018.json"));
   const totalTraceLinks = [
     parseTraceLinksFromCSV(fileManager.getContent("umlToNL.txt")).map((link) => new MediationTraceabilityLink(link.source, link.target, 1, 0)),
     parseTraceLinksFromCSV(fileManager.getContent("umlToCode.txt")).map((link) => new MediationTraceabilityLink(link.source, truncateId(link.target), 1, 2)),

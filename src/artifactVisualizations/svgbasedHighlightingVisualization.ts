@@ -1,7 +1,6 @@
 import * as d3 from 'd3';
 import { HighlightingVisualization } from "./highlightingVisualization";
-import { Config } from '../config';
-import { UIButton } from '../abstractUI';
+import { ConceptualUIButton } from '../abstractUI';
 import { Style } from '../style';
 
 
@@ -19,8 +18,16 @@ import { Style } from '../style';
         private dragStart : {x : number, y : number} = {x : 0, y : 0};
         private translation : {x : number, y : number} = {x : 0, y : 0};
     
-        constructor(viewport: HTMLElement, width : number, height : number, highlightableIds: string[], title: string, style : Style) {
-            super(highlightableIds, title, style);
+        /**
+         * 
+         * @param viewport The viewport the visualization should be attached to
+         * @param width The width to use for the underlying SVG element
+         * @param height The width to use for  the underlying SVG element
+         * @param title A human-readable title of the visualization
+         * @param style A {@link Style} object that defines the visualization's appearance
+         */
+        constructor(viewport: HTMLElement, width : number, height : number, title: string, style : Style) {
+            super(title, style);
             this.svgWidth = width;
             this.svgHeight = height;
             viewport.style.overflow = "hidden";
@@ -50,6 +57,9 @@ import { Style } from '../style';
                     this.plot.attr("transform", "translate(" + this.translation.x + "," + this.translation.y + ") scale(" + this.zoomFactor + ")");
                 }
             });
+            // TODO: magic numbers
+            this.setTranslation({x : -0.25 * this.svgWidth, y : -0.25 * this.svgHeight});
+            this.setZoomFactor(0.8);
         }
 
         protected setZoomFactor(zoomFactor : number) {
@@ -68,8 +78,8 @@ import { Style } from '../style';
             this.plot.attr("transform", "translate(" + this.translation.x + "," + this.translation.y + ") scale(" + this.zoomFactor + ")");
         }
 
-        getButtons(): UIButton[] {
+        public getButtons(): ConceptualUIButton[] {
             const superButtons = super.getButtons();
-            return [new UIButton(UIButton.SYMBOL_REFRESH, "Reset Zoom And Pan",() => {this.resetZoomAndPan();return true;})].concat(super.getButtons());
+            return [new ConceptualUIButton(ConceptualUIButton.SYMBOL_REFRESH, "Reset Zoom And Pan",() => {this.resetZoomAndPan();return true;})].concat(super.getButtons());
         }
     }

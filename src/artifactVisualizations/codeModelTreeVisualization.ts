@@ -1,6 +1,5 @@
 import * as d3 from "d3";
 import { ACMPackage, CodeModel } from "../acmClasses";
-import { Config } from "../config";
 import { SVGBasedHighlightingVisualization } from "./svgbasedHighlightingVisualization";
 import { Style } from "../style";
 
@@ -21,8 +20,15 @@ export class CodeModelTreeVisualization extends SVGBasedHighlightingVisualizatio
     protected nodeIdRemapping : Map<string, string>;
     protected codeModel : CodeModel;
 
-    constructor(viewport : HTMLElement, codeModel : CodeModel, highlightableIds: string[], style : Style) {
-        super(viewport,2000,2000,highlightableIds, Config.CODEVIS_TITLE, style);
+    /**
+     * Instantiates a new CodeModelTreeVisualization object
+     * @param viewport The viewport the visualization should be attached to
+     * @param codeModel The code model to visualize
+     * @param name A human readable name for the visualization
+     * @param style A {@link Style} object that defines the visualization's appearance
+     */
+    constructor(viewport : HTMLElement, codeModel : CodeModel, name : string, style : Style) {
+        super(viewport,2000,2000, name, style);
         this.codeModel = codeModel;
         const treeScale = 0.6;
         const nodes : Node[] = [];

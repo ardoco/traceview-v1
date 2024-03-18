@@ -1,7 +1,7 @@
 import { HighlightingVisualization } from "../artifactVisualizations/highlightingVisualization";
 import { CountingColorSupplier } from "../colorSupplier";
 import { TraceabilityLink } from "../classes";
-import { TraceLinkListener, VisualizationMediator } from "./visualizationObserver";
+import { TraceLinkListener, VisualizationObserver } from "./visualizationObserver";
 import { TraceLinkVisualization } from "../artifactVisualizations/traceLinkVisualization";
 import { VisualizationFactory, VisualizationType } from "../artifactVisualizations/visFactory";
 import { FabricatedPanel, UIFactory } from "../uiFactory";
@@ -23,7 +23,7 @@ interface VisTuple {
 }
 
 /**
- * This class is tasked with setting up a {@link VisualizationMediator} and during the runtime of the application, adding or removing the  HTML elements used by the visualizations.
+ * This class is tasked with setting up a {@link VisualizationObserver} and during the runtime of the application, adding or removing the  HTML elements used by the visualizations.
  * In particular, this class defines the layout of the application's sub panels.
  */
 export class Application implements StyleableUIElement {
@@ -31,7 +31,7 @@ export class Application implements StyleableUIElement {
     protected style : Style;
     protected visTuples : VisTuple[] = [];
     protected grid : ReorderableGrid;
-    protected mediator : VisualizationMediator;
+    protected mediator : VisualizationObserver;
     protected fileManager : FileManager;
     protected styleables : StyleableUIElement[] = [];
     protected visualizationFactory : VisualizationFactory;
@@ -54,7 +54,7 @@ export class Application implements StyleableUIElement {
         parent.appendChild(viewport);
         this.grid = new ReorderableGrid(viewport, style);
         viewport.style.paddingTop = "20px";
-        this.mediator = new VisualizationMediator(new CountingColorSupplier(30));
+        this.mediator = new VisualizationObserver(new CountingColorSupplier(30));
         const removeVisualization = (id  : number) : void => {
             this.removeVisualization(id);
         }
@@ -112,8 +112,12 @@ export class Application implements StyleableUIElement {
      * @param indicesInsteadOfIdentifiers Whether the trace links contain an indice (based on order of addition) or an identifier (based on the visualization's ID)
      */
     public addTraceLinksFromData(traceLinks : MediationTraceabilityLink[], indicesInsteadOfIdentifiers : boolean = true) {
-        const linksWithIndicesMappedToIdentifiers = traceLinks.filter((link) => link.sourceVisIndex < this.visTuples.length && link.targetVisIndex < this.visTuples.length).map((link) => new MediationTraceabilityLink(link.source, link.target, this.visTuples[link.sourceVisIndex].vis.getID(), this.visTuples[link.targetVisIndex].vis.getID()));
-        this.mediator.addTraceLinks(linksWithIndicesMappedToIdentifiers);
+        if (indicesInsteadOfIdentifiers) {
+            const linksWithIndicesMappedToIdentifiers = traceLinks.filter((link) => link.sourceVisIndex < this.visTuples.length && link.targetVisIndex < this.visTuples.length).map((link) => new MediationTraceabilityLink(link.source, link.target, this.visTuples[link.sourceVisIndex].vis.getID(), this.visTuples[link.targetVisIndex].vis.getID()));
+            this.mediator.addTraceLinks(linksWithIndicesMappedToIdentifiers);
+        } else {
+            this.mediator.addTraceLinks(traceLinks);
+        }
         this.mediator.redraw();
     }
 
@@ -154,24 +158,27 @@ export class Application implements StyleableUIElement {
     public promptForTraceLinks() {
         fabricateNewTraceLinksPopupPanel((fileNames: (string | null)[], switched: boolean[]) => {
             let index = 0;
-            for (let visTuple1 of this.visTuples) {
-                for (let visTuple2 of this.visTuples) {
-                    if (index < switched.length && switched[index]) {
-                        const sourceId = switched[index] ? visTuple2.vis.getID() : visTuple1.vis.getID();
-                        const targetId = switched[index] ? visTuple1.vis.getID() : visTuple2.vis.getID();
-                        const fileName = fileNames[index];
-                        if (fileName?.endsWith(".csv")) {
-                            const links = parseTraceLinksFromCSV(this.fileManager.getContent(fileNames[index]!)).map((link) => new MediationTraceabilityLink(link.source, link.target, sourceId, targetId));
-                            this.addTraceLinksFromData(links, false);
-                        } else {
-
-                        }
+            for (let i = 0; i < this.visTuples.length; i++) {
+                for (let j = 0; j < this.visTuples.length; j++) {
+                    const visTuple1 = this.visTuples[i];
+                    const visTuple2 = this.visTuples[j];
+                    if (visTuple1.vis.getID() == visTuple2.vis.getID()) {
+                        continue;
+                    }
+                    const sourceId = switched[index] ? visTuple2.vis.getID() : visTuple1.vis.getID();
+                    const targetId = switched[index] ? visTuple1.vis.getID() : visTuple2.vis.getID();
+                    const fileName = fileNames[index];
+                    if (fileName?.endsWith(".json")) {
+                        throw new Error("JSON trace links not supported yet");
+                    } else {
+                        const links = parseTraceLinksFromCSV(this.fileManager.getContent(fileNames[index]!)).map((link) => new MediationTraceabilityLink(link.source, link.target, sourceId, targetId));
+                        this.addTraceLinksFromData(links, false);
                     }
                     index++;
                 }
             }
             return true;
-        }, this.visTuples.map((tuple) => tuple.title), this.style);
+        }, this.visTuples.map((tuple) => tuple.title),  this.fileManager, this.style);
     }
 
     setStyle(style: Style): void {

@@ -1,5 +1,10 @@
 import { CodeModel, AbstractACMUnit, ACMClassUnit, ACMControlElement, ACMInterfaceUnit, ACMCodeCompilationUnit, ACMPackage} from "../acmClasses";
 
+/**
+ * Parses a architecture code model from a JSON string
+ * @param content The JSON string
+ * @returns The parsed code model
+ */
 export function parseCodeFromACM(content : string) : CodeModel {
     const json = JSON.parse(content);
     const types  = new Set();

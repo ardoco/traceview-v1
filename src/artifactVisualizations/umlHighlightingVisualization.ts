@@ -2,8 +2,7 @@ import * as d3 from 'd3';
 
 import { UMLModel } from '../artifacts/uml';
 import { getTextWidth } from '../utils';
-import { Config } from '../config';
-import { UIButton } from '../abstractUI';
+import { ConceptualUIButton } from '../abstractUI';
 import { SVGBasedHighlightingVisualization } from './svgbasedHighlightingVisualization';
 import { Style } from '../style';
 
@@ -38,8 +37,8 @@ export class UMLHighlightingVisualization extends SVGBasedHighlightingVisualizat
     protected nodes : Node[]
     protected marker : d3.Selection<SVGPathElement, unknown, null, undefined>;
     
-    constructor(viewport : HTMLElement, model : UMLModel, highlightableIds: string[], style : Style) {
-        super(viewport,2000,2000, highlightableIds,Config.UMLVIS_TITLE,style);
+    constructor(viewport : HTMLElement, model : UMLModel, name : string, style : Style) {
+        super(viewport,2000,2000,name,style);
         this.showEdgeLabels = true;
         this.userCanNotDragNodes = true;
         this.nodes = [];
@@ -171,12 +170,12 @@ export class UMLHighlightingVisualization extends SVGBasedHighlightingVisualizat
             .style("display", this.showEdgeLabels ? "block" : "none");
     }
 
-    getButtons(): UIButton[] {
-        const buttons = [new UIButton("❄", "Freeze/Unfreeze Simulation",() => {
+    getButtons(): ConceptualUIButton[] {
+        const buttons = [new ConceptualUIButton("❄", "Freeze/Unfreeze Simulation",() => {
                     this.userCanNotDragNodes = !this.userCanNotDragNodes;
                     return this.userCanNotDragNodes;
                 }, true, this.userCanNotDragNodes),
-            new UIButton("⎁", "Toggle Edge Labels", () => {
+            new ConceptualUIButton("⎁", "Toggle Edge Labels", () => {
                     this.showEdgeLabels = !this.showEdgeLabels;
                     this.redrawEdges();
                     return this.showEdgeLabels;

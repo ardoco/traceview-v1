@@ -1,4 +1,4 @@
-import { UIButton } from "../abstractUI";
+import { ConceptualUIButton } from "../abstractUI";
 import { ButtonStyle, StyleableButtonElement } from "../style";
 
 export class Button implements StyleableButtonElement {
@@ -19,9 +19,9 @@ export class Button implements StyleableButtonElement {
      * @param fontSizeInPx the font size in pixels
      * @param marginInPx the button's left margin in pixels
      * @param style A {@link ButtonStyle} object that defines the button's appearance
-     * @param buttonData An {@link UIButton} object that defines the button's behavior
+     * @param buttonData An {@link ConceptualUIButton} object that defines the button's behavior
      */
-    constructor(parent : HTMLElement, sizeInPx : number, fontSizeInPx : number, marginInPx : number, style : ButtonStyle, buttonData : UIButton) {
+    constructor(parent : HTMLElement, sizeInPx : number, fontSizeInPx : number, marginInPx : number, style : ButtonStyle, buttonData : ConceptualUIButton) {
         this.div = document.createElement('div');
         parent.appendChild(this.div);
         this.div.style.width = sizeInPx + "px";

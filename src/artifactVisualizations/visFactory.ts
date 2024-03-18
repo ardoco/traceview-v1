@@ -1,5 +1,3 @@
-import { TraceabilityLink } from "../classes";
-import { Config } from "../config";
 import { parseNLTXT, } from "../parse/parse";
 import { parseUML } from "../parse/parseUML";
 import { parseCodeFromACM } from "../parse/parseACM";
@@ -18,12 +16,24 @@ export enum VisualizationType {
     IMG,
 }
 
+/**
+ * This factory handles the instantiation of visualizations based on the input data and the desired visualization type.
+ * An object of this class if passed to the application on creation and this object will define which visualization types are supported.
+ */
 export class VisualizationFactory {
 
+    protected static readonly NLVIS_TITLE = "S.A. Documentation";
+    protected static readonly UMLVIS_TITLE = "UML";
+    protected static readonly CODEVIS_TITLE = "Code Model";
+    protected static readonly DIAGRAM_VIS_TITLE = "Diagram";
+
+    /**
+     * Instantiates a new VisualizationFactory object
+     */
     constructor() {}
 
     /**
-     * Returns an array of all visualization types known to this factory. These make up the valid inputs and expected outputs of the factory's methods.
+     * Returns an array of all visualization types known to this factory. These make up the valid inputs and expected outputs of the factory's other methods.
      * @returns An array of all visualization types
      */
     public getAllVisualizationTypes() : VisualizationType[] {
@@ -40,18 +50,18 @@ export class VisualizationFactory {
     public fabricateVisualization(visualizationType : VisualizationType, data : string[], style : Style) : ((vp: HTMLElement) => HighlightingVisualization) {
         if (visualizationType == VisualizationType.NL) {
             const sentences = parseNLTXT(data[0]);
-            return (vp : HTMLElement) => new NLHighlightingVisualization(vp, sentences, [], style);
+            return (vp : HTMLElement) => new NLHighlightingVisualization(vp, sentences, VisualizationFactory.NLVIS_TITLE, style);
         } else if (visualizationType == VisualizationType.UML) {
             const uml = parseUML(data[0]);
-            return (vp : HTMLElement) => new UMLHighlightingVisualization(vp, uml, [], style);
+            return (vp : HTMLElement) => new UMLHighlightingVisualization(vp, uml, VisualizationFactory.UMLVIS_TITLE, style);
         } else if (visualizationType == VisualizationType.CODE) {
             const codeModel = parseCodeFromACM(data[0]);
-            return (vp : HTMLElement) => new CodeModelTreeVisualization(vp, codeModel, [], style);
+            return (vp : HTMLElement) => new CodeModelTreeVisualization(vp, codeModel, VisualizationFactory.CODEVIS_TITLE, style);
         } else if (visualizationType == VisualizationType.IMG) {
             const aabbs = parseAABBs(data[1]);
-            return (vp : HTMLElement) => new DiagramVisualization(vp, data[0], aabbs,[], style);
+            return (vp : HTMLElement) => new DiagramVisualization(vp, data[0], aabbs, VisualizationFactory.DIAGRAM_VIS_TITLE, style);
         }
-        throw new Error("Unknown visualization type index: " + visualizationType);
+        throw new Error("Unknown visualization type: " + visualizationType);
     }
 
     /**
@@ -65,7 +75,7 @@ export class VisualizationFactory {
         } else if (visualizationType == VisualizationType.IMG) {
             return 2;
         } else {
-            throw new Error("Unknown visualization type index: " + visualizationType);
+            throw new Error("Unknown visualization type: " + visualizationType);
         }
     }
 
@@ -76,15 +86,15 @@ export class VisualizationFactory {
      */
     public getTypeName(typeIndex : number) : string {
         if (typeIndex == VisualizationType.NL) {
-            return Config.NLVIS_TITLE;
+            return VisualizationFactory.NLVIS_TITLE;
         } else if (typeIndex == VisualizationType.UML) {
-            return Config.UMLVIS_TITLE;
+            return VisualizationFactory.UMLVIS_TITLE;
         } else if (typeIndex == VisualizationType.CODE) {
-            return Config.CODEVIS_TITLE;
+            return VisualizationFactory.CODEVIS_TITLE;
         } else if (typeIndex == VisualizationType.IMG) {
-            return Config.DIAGRAM_VIS_TITLE;
+            return VisualizationFactory.DIAGRAM_VIS_TITLE;
         }
-        throw new Error("Unknown visualization type index: " + typeIndex);
+        throw new Error("Unknown visualization type: " + typeIndex);
     }
 
     /**
@@ -93,16 +103,16 @@ export class VisualizationFactory {
      * @returns The corresponding enum value
      */
     public getType(name : string) : VisualizationType {
-        if (name == Config.NLVIS_TITLE) {
+        if (name == VisualizationFactory.NLVIS_TITLE) {
             return VisualizationType.NL;
-        } else if (name == Config.UMLVIS_TITLE) {
+        } else if (name == VisualizationFactory.UMLVIS_TITLE) {
             return VisualizationType.UML;
-        } else if (name == Config.CODEVIS_TITLE) {
+        } else if (name == VisualizationFactory.CODEVIS_TITLE) {
             return VisualizationType.CODE;
-        } else if (name == Config.DIAGRAM_VIS_TITLE) {
+        } else if (name == VisualizationFactory.DIAGRAM_VIS_TITLE) {
             return VisualizationType.IMG;
         }
-        throw new Error("Unknown visualization type name: " + name);
+        throw new Error("Unknown visualization type: " + name);
     }
 
 }

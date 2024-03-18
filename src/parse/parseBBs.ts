@@ -1,6 +1,11 @@
 import { text } from "d3";
 import { AABB, ArtefactAABB, TextedAABB } from "../artifacts/aabb";
 
+/**
+ * Parses a list of axis-aligned boxes from a JSON string
+ * @param content The JSON string
+ * @returns A list of axis-aligned bounding boxes
+ */
 export function parseAABBs(content : string) : ArtefactAABB[] {
     const json = JSON.parse(content);
     if (json.diagrams.length != 1) {
