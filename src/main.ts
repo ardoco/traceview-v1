@@ -180,21 +180,6 @@ async function init(fileManager: FileManager) {
     0.6 * buttonPanel.getBoundingClientRect().height,
     STYLE,
   );
-  const availableStylesNames = ["ArDoCo", "Dark", "Light"];
-  const availableStyleActions = [Style.ARDOCO, Style.NIGHT, Style.DEFAULT].map(
-    (style) => () => {
-      middle.style.backgroundColor = style.getBackgroundColor();
-      app.setStyle(style);
-    },
-  );
-  const changeStyleButton = UIFactory.fabricatePageHeaderDropdownButton(
-    ["🎨"],
-    availableStylesNames,
-    availableStyleActions,
-    0.6 * buttonPanel.getBoundingClientRect().height,
-    STYLE,
-  );
-  buttonPanel.insertBefore(changeStyleButton, buttonPanel.firstChild);
   buttonPanel.insertBefore(addVisButton, buttonPanel.firstChild);
 }
 

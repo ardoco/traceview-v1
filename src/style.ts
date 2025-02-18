@@ -92,35 +92,6 @@ export class ButtonStyle {
  * This class represents a set of colors defining the appearance of the application
  */
 export class Style {
-  public static readonly DEFAULT = new Style(
-    "var(--selectable-text-color)",
-    "var(--not-selectable-text-color)",
-    "var(--background-color)",
-    "var(--paper-color)",
-    "var(--header-color)",
-    "var(--border-color)",
-    {
-      backgroundColor: "var(--button-background-color)",
-      hoverBackgroundColor: "var(--button-hover-background-color)",
-      downBackgroundColor: "var(--button-down-background-color)",
-    },
-  );
-  public static readonly NIGHT = new Style(
-    "var(--night-selectable-text-color)",
-    "var(--night-not-selectable-text-color)",
-    "var(--night-background-color)",
-    "var(--night-paper-color)",
-    "var(--night-header-color)",
-    "var(--night-border-color)",
-    {
-      backgroundColor: "var(--night-button-background-color)",
-      hoverBackgroundColor: "var(--night-button-hover-background-color)",
-      downBackgroundColor: "var(--night-button-down-background-color)",
-    },
-  );
-
-  // 249,241,220
-  // #0366d6
   public static readonly ARDOCO = new Style(
     "var(--ardoco-selectable-text-color)",
     "var(--ardoco-not-selectable-text-color)",
