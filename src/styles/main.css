@@ -28,10 +28,22 @@
   --ardoco-button-background-color: rgb(249, 241, 220);
   --ardoco-button-hover-background-color: rgb(220, 220, 220);
   --ardoco-button-down-background-color: rgb(150, 150, 150);
+
+  --app-header-height: 80px;
+  --app-header-padding: 0 10px;
+  --title-font-size: 2em;
+  --title-font-family: 'Arial', sans-serif;
+  --title-font-weight: bold;
+  --title-color: rgb(57, 119, 147); /* ArDoCo blue */
+  --button-panel-padding-right: 80px;
 }
 
 .app-header {
-  height: 60px;
+  height: var(--app-header-height);
+  display: flex;
+  align-items: center;
+  padding: var(--app-header-padding);
+  background-color: var(--paper-color);
 }
 
 .app-header img {
@@ -48,8 +60,14 @@
 }
 
 #titlePanel {
+  display: flex;
+  align-items: center;
   height: 100%;
   width: 70%;
+  font-family: var(--title-font-family);
+  font-weight: var(--title-font-weight);
+  font-size: var(--title-font-size);
+  color: var(--title-color);
 }
 
 #buttonPanel {
@@ -57,7 +75,8 @@
   width: 30%;
   display: flex;
   justify-content: flex-end;
-  padding-right: 80px;
+  align-items: center;
+  padding-right: var(--button-panel-padding-right);
 }
 
 #middle {
