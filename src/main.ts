@@ -9,6 +9,7 @@ import {
   VisualizationFactory,
   VisualizationType,
 } from "./artifactVisualizations/visFactory";
+import './styles/main.css';
 
 const STYLE = Style.ARDOCO;
 
