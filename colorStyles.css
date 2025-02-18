@@ -1,11 +1,11 @@
 .color-selectable {
-    color: black;
+  color: black;
 }
 
 .color-unselectable {
-    color: rgb(110, 110, 110);
+  color: rgb(110, 110, 110);
 }
 
 .color-background-paper {
-    background-color: white;
+  background-color: white;
 }
