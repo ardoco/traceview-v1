@@ -1,101 +1,110 @@
 export class UML2Operation {
+  protected identifier: string;
+  protected name: string;
 
-    protected identifier : string;
-    protected name : string;
-
-    constructor(identifier : string, name : string) {
-        this.identifier = identifier;
-        this.name = name;
-    }
+  constructor(identifier: string, name: string) {
+    this.identifier = identifier;
+    this.name = name;
+  }
 }
 
 export abstract class UMLAbstractComponent {
+  protected identifier: string;
+  protected name: string;
+  protected extendz: UMLAbstractComponent[];
+  protected uses: UMLAbstractComponent[];
+  protected operations: UML2Operation[];
+  protected children: UMLAbstractComponent[];
 
-    protected identifier : string;
-    protected name : string;
-    protected extendz : UMLAbstractComponent[];
-    protected uses : UMLAbstractComponent[];
-    protected operations : UML2Operation[];
-    protected children : UMLAbstractComponent[];
-
-    constructor(identifier : string, name : string, operations : {identifier : string, name : string}[] ) {
-        this.identifier = identifier;
-        this.name = name;
-        this.extendz = [];
-        this.uses = [];
-        this.operations = [];
-        for (let operation of operations) {
-            this.operations.push(new UML2Operation(operation.identifier,operation.name));
-        }
-        this.children = [];
+  constructor(
+    identifier: string,
+    name: string,
+    operations: { identifier: string; name: string }[],
+  ) {
+    this.identifier = identifier;
+    this.name = name;
+    this.extendz = [];
+    this.uses = [];
+    this.operations = [];
+    for (let operation of operations) {
+      this.operations.push(
+        new UML2Operation(operation.identifier, operation.name),
+      );
     }
-    
-    addExtends(extendz : UMLAbstractComponent) {
-        this.extendz.push(extendz);
-    }
+    this.children = [];
+  }
 
-    addUses(uses : UMLAbstractComponent) {
-        this.uses.push(uses);
-    }
+  addExtends(extendz: UMLAbstractComponent) {
+    this.extendz.push(extendz);
+  }
 
-    getIdentifier() : string {
-        return this.identifier;
-    }
+  addUses(uses: UMLAbstractComponent) {
+    this.uses.push(uses);
+  }
 
-    getName() : string {
-        return this.name;
-    }
+  getIdentifier(): string {
+    return this.identifier;
+  }
 
-    getExtends() : UMLAbstractComponent[] {
-        return this.extendz;
-    }
+  getName(): string {
+    return this.name;
+  }
 
-    getUses() : UMLAbstractComponent[] {
-        return this.uses;
-    }
+  getExtends(): UMLAbstractComponent[] {
+    return this.extendz;
+  }
 
-    addChild(child : UMLAbstractComponent) {
-        if (this.children.indexOf(child) < 0) {
-            this.children.push(child);
-        }
-    }
+  getUses(): UMLAbstractComponent[] {
+    return this.uses;
+  }
 
-    getChildComponents() : UMLAbstractComponent[] {
-        return this.children;
+  addChild(child: UMLAbstractComponent) {
+    if (this.children.indexOf(child) < 0) {
+      this.children.push(child);
     }
+  }
 
-    abstract isInterface() : boolean;
+  getChildComponents(): UMLAbstractComponent[] {
+    return this.children;
+  }
+
+  abstract isInterface(): boolean;
 }
 
 export class UMLComponent extends UMLAbstractComponent {
+  constructor(identifier: string, name: string) {
+    super(identifier, name, []);
+  }
 
-    constructor(identifier : string, name : string) {
-        super(identifier,name,[]);
-    }
-
-    isInterface() : boolean {
-        return false;
-    }
+  isInterface(): boolean {
+    return false;
+  }
 }
 
 export class UMLInterface extends UMLAbstractComponent {
-    
-    constructor(identifier : string, name : string, operations : {identifier : string, name : string}[] ) {
-        super(identifier,name,operations);
-    }
+  constructor(
+    identifier: string,
+    name: string,
+    operations: { identifier: string; name: string }[],
+  ) {
+    super(identifier, name, operations);
+  }
 
-    isInterface() : boolean {
-        return true;
-    }
+  isInterface(): boolean {
+    return true;
+  }
 }
 
 export class UMLModel {
-    protected elements : UMLAbstractComponent[];
-    constructor(components : UMLAbstractComponent[], interfaces : UMLAbstractComponent[]) {
-        this.elements = components.concat(interfaces);
-    }
+  protected elements: UMLAbstractComponent[];
+  constructor(
+    components: UMLAbstractComponent[],
+    interfaces: UMLAbstractComponent[],
+  ) {
+    this.elements = components.concat(interfaces);
+  }
 
-    getElements() : UMLAbstractComponent[] {
-        return this.elements;
-    }
+  getElements(): UMLAbstractComponent[] {
+    return this.elements;
+  }
 }

@@ -6,6 +6,7 @@ To add a new type of visualization two things are necessary: \
 First, a new class extending `HighlightingVisualization` or one of it's sub classes needs to be implemented. \
 See the documentation for more an explanation of the types and parameters involved.
 For example:
+
 ```Typescript
 
 public class MyNewVisualization extends HighlightingVisualization {
@@ -42,10 +43,11 @@ public class MyNewVisualization extends HighlightingVisualization {
     }
 
     private doSomething() {
-        
+
     }
 }
 ```
+
 Second, the application needs to be aware of the new visualization and be able to instantiate it.
 Both tasks are handled by the `VisualizationFactory` passed to the `Application` through its constructor.
 So, to add support for your new visualization you need to either the class [`visFactory.ts`](https://github.com/ArDoCo/TraceView/blob/main/src/artifactVisualizations/visFactory.ts)
@@ -93,6 +95,7 @@ export class MyVisualizationFactory extends VisualizationFactory {
 ```
 
 In both cases a value representing the new visualization type needs to be added to the `VisualizationType` enum.
+
 ```Typescript
 export enum VisualizationType {
     NL,

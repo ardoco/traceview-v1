@@ -1,13 +1,13 @@
 .reorderable-row-drag-indicator {
-    position: absolute;
-    width: 40px;
-    height: 40px;
-    font-size: 40px;
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  font-size: 40px;
 }
 
 .reorderable-row {
-    width : 100%;
-    max-height: 95%;
-    min-height: 5%;
-    overflow : hidden;
+  width: 100%;
+  max-height: 95%;
+  min-height: 5%;
+  overflow: hidden;
 }
