@@ -120,10 +120,6 @@ async function init(fileManager: FileManager) {
     "codeModel.acm",
     await load(urlPrefix + "model_2022/code/codeModel.acm"),
   );
-  fileManager.addTextFile(
-    "diagramData.json",
-    await load(urlPrefix + "goldstandards/goldstandard_sad_id_2018.json"),
-  );
   const totalTraceLinks = [
     parseTraceLinksFromCSV(fileManager.getContent("umlToNL.txt")).map(
       (link) => new MediationTraceabilityLink(link.source, link.target, 1, 0),
