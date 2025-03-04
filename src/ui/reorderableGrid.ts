@@ -118,12 +118,14 @@ export class ReorderableGrid implements StyleableUIElement {
 
   private addRow(rowHeightFraction: number) {
     if (this.rows.length > 0) {
-      this.handles.push(
+      // Disable row adding feature (row > 0) for now
+      return;
+      /*this.handles.push(
         new YResizingHandle(
           this.rows[this.rows.length - 1].getRow(),
           this.style,
         ),
-      );
+      );*/
       this.viewport.appendChild(
         this.handles[this.handles.length - 1].getHandle(),
       );
