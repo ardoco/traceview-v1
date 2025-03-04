@@ -15,14 +15,14 @@ export class CountingColorSupplier implements ColorSupplier {
   constructor() {
     this.colorIsInUse = new Map<string, string>();
     this.colorPool = [
-      "rgb(0, 150, 130)",    // kit-green
-      "rgb(70, 100, 170)",   // kit-blue
-      "rgb(162, 34, 35)",    // kit-red
-      "rgb(223, 155, 27)",   // kit-orange
-      "rgb(140, 182, 60)",   // kit-lightgreen
-      "rgb(163, 16, 124)",   // kit-purple
-      "rgb(167, 130, 46)",   // kit-brown
-      "rgb(35, 161, 224)"    // kit-cyan
+      "rgb(0, 150, 130)", // kit-green
+      "rgb(70, 100, 170)", // kit-blue
+      "rgb(162, 34, 35)", // kit-red
+      "rgb(223, 155, 27)", // kit-orange
+      "rgb(140, 182, 60)", // kit-lightgreen
+      "rgb(163, 16, 124)", // kit-purple
+      "rgb(167, 130, 46)", // kit-brown
+      "rgb(35, 161, 224)", // kit-cyan
     ];
     this.numColorsInUse = 0;
   }

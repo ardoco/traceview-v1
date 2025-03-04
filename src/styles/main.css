@@ -21,7 +21,11 @@
   --ardoco-not-selectable-text-color: rgb(110, 110, 110);
   --ardoco-background-color: rgb(175, 175, 175);
   --ardoco-paper-color: white;
-  --ardoco-header-color: rgb(calc(0.4*255 + 0.6*255), calc(0.4*255 + 0.6*155), calc(0.4*255 + 0.6*27));
+  --ardoco-header-color: rgb(
+    calc(0.4 * 255 + 0.6 * 255),
+    calc(0.4 * 255 + 0.6 * 155),
+    calc(0.4 * 255 + 0.6 * 27)
+  );
   --ardoco-button-background-color: rgba(249, 241, 220, 0);
   --ardoco-button-hover-background-color: rgb(220, 220, 220);
   --ardoco-button-down-background-color: rgb(191, 191, 191);
@@ -29,7 +33,7 @@
   --app-header-height: 80px;
   --app-header-padding: 0 20px;
   --title-font-size: 1em;
-  --title-font-family: 'Roboto', 'normal';
+  --title-font-family: "Roboto", "normal";
   --title-font-weight: 400; /* Use a medium weight for a less lean look */
   --title-color: rgb(42, 42, 42);
   --ardoco-color: rgb(57, 119, 147);
@@ -52,7 +56,9 @@ html {
 
 #middle {
   background-color: var(--background-color);
-  height: calc(100% - var(--app-header-height)); /* Adjust height to be below the header */
+  height: calc(
+    100% - var(--app-header-height)
+  ); /* Adjust height to be below the header */
   overflow: auto;
   position: fixed;
   top: var(--app-header-height); /* Ensure content starts below the header */
@@ -149,7 +155,6 @@ html {
 
 /* Moved from uiElementStyles.css */
 .generic-visible-panel {
-
 }
 
 .popup-background {

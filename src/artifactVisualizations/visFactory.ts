@@ -10,7 +10,7 @@ import { UMLHighlightingVisualization } from "./umlHighlightingVisualization";
 export enum VisualizationType {
   NL,
   UML,
-  CODE
+  CODE,
 }
 
 /**
@@ -35,7 +35,7 @@ export class VisualizationFactory {
     return [
       VisualizationType.NL,
       VisualizationType.UML,
-      VisualizationType.CODE
+      VisualizationType.CODE,
     ];
   }
 
