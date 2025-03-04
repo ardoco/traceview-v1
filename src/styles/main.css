@@ -38,12 +38,299 @@
   --button-panel-padding-right: 80px;
 }
 
+body,
+html {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  font-family: "Inter", sans-serif;
+}
+
+#top,
+#middle {
+  width: 100%;
+  position: fixed;
+}
+
+#middle {
+  background-color: var(--background-color);
+  height: calc(100% - var(--app-header-height)); /* Adjust height to be below the header */
+  overflow: auto;
+  position: fixed;
+  top: var(--app-header-height); /* Ensure content starts below the header */
+}
+
+.file-input-container {
+  width: 20%;
+  height: 70%;
+  padding: 5px;
+  margin-right: 10px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid black;
+  padding-left: 15px;
+  margin: 0px 30px 0px 30px;
+  padding-top: 15px;
+}
+
+.uiBigRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  text-align: center;
+}
+
+.uiBigColumn {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 20px 20px 20px 20px;
+}
+
+.sentence-item-row {
+  margin: 0px 20px 0px 5px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: left;
+  color: gray;
+  border-top: 1px solid darkgrey;
+}
+
+.sentence-item-row-number {
+  font-size: 15px;
+  text-align: right;
+  padding-right: 10px;
+  width: 2.5%;
+  user-select: none;
+  padding-left: 10px;
+}
+
+.sentence-item {
+  padding: 10px 20px 10px 10px;
+  font-size: 20px;
+  font-weight: 600;
+  user-select: none;
+  text-align: left;
+  color: black;
+  width: 92.5%;
+}
+
+.split-vis-half-header {
+  display: flex;
+  font-weight: bold;
+  user-select: none;
+}
+
+.split-vis-half-header-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.split-vis-half-header > :first-child {
+  align-items: center;
+  justify-content: left;
+  display: flex;
+  font-size: 20px;
+  padding-left: 20px;
+}
+
+.placeholder-shared {
+  height: 95%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+/* Moved from uiElementStyles.css */
+.generic-visible-panel {
+  border: 1px solid black;
+}
+
+.popup-background {
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.75);
+  position: fixed;
+  z-index: 999;
+}
+
+.split-vis-half-container {
+  display: inline-block;
+  justify-content: center;
+  flex-direction: column;
+  min-width: 5%;
+  min-height: 5%;
+  padding-bottom: 1px;
+}
+
+.resizer-handle-x {
+  cursor: col-resize;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 90%;
+  width: 10px;
+  margin-left: 10px;
+  margin-right: 10px;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.resizer-handle-y {
+  cursor: row-resize;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 10px;
+  width: 90%;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.appheader-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* Moved from colorStyles.css */
+.color-selectable {
+  color: black;
+}
+
+.color-unselectable {
+  color: rgb(110, 110, 110);
+}
+
+.color-background-paper {
+  background-color: white;
+}
+
+/* Moved from initVisPopupStyles.css */
+.initVis-plusButton {
+  display: flex;
+  flex-direction: column;
+}
+
+.initVis-popup {
+  width: 50%;
+  height: 70%;
+  background-color: white;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+}
+
+.initVis-title {
+  text-align: center;
+  user-select: none;
+}
+
+.initVis-dropdown {
+  width: 40%;
+  margin-top: auto;
+  margin-bottom: auto;
+  min-width: 40%;
+}
+
+.initVis-bigButton {
+  width: 90%;
+  margin-top: auto;
+  margin-bottom: 2.5%;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  user-select: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.initVis-entry {
+  width: 80%;
+  padding-left: 10%;
+  padding-right: 10%;
+  border-top: 1px solid black;
+  user-select: none;
+  display: flex;
+  align-items: center;
+}
+
+.initVis-entry-text {
+  width: 50%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  user-select: none;
+}
+
+.initVis-entrySwap {
+  width: 10%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  text-align: left;
+  user-select: none;
+  cursor: pointer;
+}
+
+/* Moved from gridStyles.css */
+.reorderable-row-drag-indicator {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  font-size: 40px;
+}
+
+.reorderable-row {
+  width: 100%;
+  max-height: 95%;
+  min-height: 5%;
+  overflow: hidden;
+}
+
+.app-header {
+  background-color: rgb(250, 250, 250);
+  height: 5%;
+  border-bottom: 1px solid black;
+  display: flex;
+  align-items: center;
+  justify-content: left;
+  font-size: 50px;
+  padding-left: 1%;
+  user-select: none;
+  font-weight: bold;
+  text-shadow: 1px 1px 1px #000000;
+}
+
 .app-header {
   height: var(--app-header-height);
   display: flex;
   align-items: center;
   padding: var(--app-header-padding);
   background-color: var(--paper-color);
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000; /* Ensure it stays on top of other elements */
 }
 
 .app-header img {
@@ -62,7 +349,7 @@
 #titlePanel {
   display: flex;
   align-items: center;
-  height: 100%;
+  height: 100%; /* Ensure titlePanel height matches app-header */
   width: 70%;
   font-family: var(--title-font-family);
   font-weight: var(--title-font-weight);
@@ -71,7 +358,7 @@
 }
 
 #buttonPanel {
-  height: 100%;
+  height: var(--app-header-height);
   width: 30%;
   display: flex;
   justify-content: flex-end;
@@ -79,13 +366,9 @@
   padding-right: var(--button-panel-padding-right);
 }
 
-#middle {
-  background-color: var(--background-color);
-  height: 95%;
-}
-
 .legend {
-  position: relative;
+  position: sticky;
+  top: 0;
   margin-top: 10px;
   margin: 10px;
   background-color: white;
@@ -103,4 +386,15 @@
   width: 18px;
   height: 18px;
   margin-right: 5px;
+}
+
+.viewport {
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+}
+
+.uiBigColumn {
+  /* Add any specific styles for uiBigColumn if needed */
+  padding: 20px 20px 20px 20px;
 }

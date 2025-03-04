@@ -23,7 +23,7 @@ import { parseTraceLinksFromCSV } from "../parse/parse";
 
 /**
  * A tuple containing a visualization, the closest parent HTML element that is not shared between with any other visualization, an identifier and the title used to reference the visualization in the UI
- 
+
  */
 interface VisTuple {
   vis: HighlightingVisualization;
@@ -61,12 +61,10 @@ export class Application implements StyleableUIElement {
     this.visualizationFactory = visFactory;
     parent.innerHTML = "";
     const viewport = document.createElement("div");
-    viewport.style.height = "100%";
-    viewport.style.width = "98%";
+    viewport.classList.add("viewport");
     parent.classList.add("uiBigColumn");
     parent.appendChild(viewport);
     this.grid = new ReorderableGrid(viewport, style);
-    viewport.style.paddingTop = "20px";
     this.mediator = new VisualizationObserver(new CountingColorSupplier(30));
     const removeVisualization = (id: number): void => {
       this.removeVisualization(id);
