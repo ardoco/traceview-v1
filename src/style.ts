@@ -92,49 +92,22 @@ export class ButtonStyle {
  * This class represents a set of colors defining the appearance of the application
  */
 export class Style {
-  public static readonly DEFAULT = new Style(
-    "black",
-    "rgb(110,110,110)",
-    "rgb(200,200,200)",
-    "white",
-    "rgb(240,240,240)",
-    "black",
-    {
-      backgroundColor: "white",
-      hoverBackgroundColor: "rgb(220,220,220)",
-      downBackgroundColor: "rgb(150,150,150)",
-    },
-  );
-  public static readonly NIGHT = new Style(
-    "rgb(255,255,255)",
-    "rgb(130,130,130)",
-    "rgb(80,80,80)",
-    "rgb(50,50,50)",
-    "rgb(100,100,100)",
-    "rgb(150,150,150)",
-    {
-      backgroundColor: "rgb(100,100,100)",
-      hoverBackgroundColor: "rgb(90,90,90)",
-      downBackgroundColor: "rgb(40,40,40)",
-    },
-  );
-
-  // 249,241,220
-  // #0366d6
   public static readonly ARDOCO = new Style(
-    "black",
-    "rgb(110,110,110)",
-    "rgb(57, 119, 147)",
-    "white",
-    "rgb(145,189,224)",
-    "black",
+    "var(--ardoco-color)",
+    "var(--ardoco-selectable-text-color)",
+    "var(--ardoco-not-selectable-text-color)",
+    "var(--ardoco-background-color)",
+    "var(--ardoco-paper-color)",
+    "var(--ardoco-header-color)",
+    "var(--ardoco-border-color)",
     {
-      backgroundColor: "rgb(249,241,220)",
-      hoverBackgroundColor: "rgb(220,220,220)",
-      downBackgroundColor: "rgb(150,150,150)",
+      backgroundColor: "var(--ardoco-button-background-color)",
+      hoverBackgroundColor: "var(--ardoco-button-hover-background-color)",
+      downBackgroundColor: "var(--ardoco-button-down-background-color)",
     },
   );
 
+  protected ardocoColor: string;
   protected selectableText: string;
   protected notSelectableText: string;
   protected background: string;
@@ -144,6 +117,7 @@ export class Style {
   protected buttonStyle: ButtonStyle;
 
   protected constructor(
+    ardocoColor: string,
     selectableText: string,
     notSelectableText: string,
     background: string,
@@ -152,6 +126,7 @@ export class Style {
     borderColor: string,
     buttonStyle: ProtoButtonStyle,
   ) {
+    this.ardocoColor = ardocoColor;
     this.selectableText = selectableText;
     this.notSelectableText = notSelectableText;
     this.background = background;
@@ -165,6 +140,10 @@ export class Style {
       this.selectableText,
       this.borderColor,
     );
+  }
+
+  public getArdocoColor(): string {
+    return this.ardocoColor;
   }
 
   /**

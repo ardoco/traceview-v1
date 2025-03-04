@@ -1,0 +1,402 @@
+:root {
+  --selectable-text-color: black;
+  --not-selectable-text-color: rgb(110, 110, 110);
+  --background-color: rgb(200, 200, 200);
+  --paper-color: white;
+  --header-color: rgb(240, 240, 240);
+  --button-background-color: white;
+  --button-hover-background-color: rgb(220, 220, 220);
+  --button-down-background-color: rgb(150, 150, 150);
+
+  --night-selectable-text-color: rgb(255, 255, 255);
+  --night-not-selectable-text-color: rgb(130, 130, 130);
+  --night-background-color: rgb(80, 80, 80);
+  --night-paper-color: rgb(50, 50, 50);
+  --night-header-color: rgb(100, 100, 100);
+  --night-button-background-color: rgb(100, 100, 100);
+  --night-button-hover-background-color: rgb(90, 90, 90);
+  --night-button-down-background-color: rgb(40, 40, 40);
+
+  --ardoco-selectable-text-color: black;
+  --ardoco-not-selectable-text-color: rgb(110, 110, 110);
+  --ardoco-background-color: rgb(175, 175, 175);
+  --ardoco-paper-color: white;
+  --ardoco-header-color: rgb(
+    calc(0.4 * 255 + 0.6 * 255),
+    calc(0.4 * 255 + 0.6 * 155),
+    calc(0.4 * 255 + 0.6 * 27)
+  );
+  --ardoco-button-background-color: rgba(249, 241, 220, 0);
+  --ardoco-button-hover-background-color: rgb(220, 220, 220);
+  --ardoco-button-down-background-color: rgb(191, 191, 191);
+
+  --app-header-height: 80px;
+  --app-header-padding: 0 20px;
+  --title-font-size: 1em;
+  --title-font-family: "Roboto", "normal";
+  --title-font-weight: 400; /* Use a medium weight for a less lean look */
+  --title-color: rgb(42, 42, 42);
+  --ardoco-color: rgb(57, 119, 147);
+  --button-panel-padding-right: 80px;
+}
+
+body,
+html {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  font-family: "Inter", sans-serif;
+}
+
+#top,
+#middle {
+  width: 100%;
+  position: fixed;
+}
+
+#middle {
+  background-color: var(--background-color);
+  height: calc(
+    100% - var(--app-header-height)
+  ); /* Adjust height to be below the header */
+  overflow: auto;
+  position: fixed;
+  top: var(--app-header-height); /* Ensure content starts below the header */
+}
+
+.file-input-container {
+  width: 20%;
+  height: 70%;
+  padding: 5px;
+  margin-right: 10px;
+  display: flex;
+  flex-direction: column;
+  padding-left: 15px;
+  margin: 0px 30px 0px 30px;
+  padding-top: 15px;
+}
+
+.uiBigRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  text-align: center;
+}
+
+.uiBigColumn {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 20px 20px 20px 20px;
+}
+
+.sentence-item-row {
+  margin: 0px 20px 0px 5px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: left;
+  color: gray;
+  border-top: 1px solid darkgrey;
+}
+
+.sentence-item-row-number {
+  font-size: 15px;
+  text-align: right;
+  padding-right: 10px;
+  width: 2.5%;
+  user-select: none;
+  padding-left: 10px;
+}
+
+.sentence-item {
+  padding: 10px 20px 10px 10px;
+  font-size: 20px;
+  font-weight: 600;
+  user-select: none;
+  text-align: left;
+  color: black;
+  width: 92.5%;
+}
+
+.split-vis-half-header {
+  display: flex;
+  font-weight: bold;
+  user-select: none;
+  border-radius: 10px 10px 0 0; /* Add rounded corners */
+}
+
+.split-vis-half-header-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 10px;
+}
+
+.split-vis-half-header > :first-child {
+  align-items: center;
+  justify-content: left;
+  display: flex;
+  font-size: 20px;
+  padding-left: 20px;
+}
+
+.placeholder-shared {
+  height: 95%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+/* Moved from uiElementStyles.css */
+.generic-visible-panel {
+}
+
+.popup-background {
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.75);
+  position: fixed;
+  z-index: 999;
+}
+
+.split-vis-half-container {
+  display: inline-block;
+  justify-content: center;
+  flex-direction: column;
+  min-width: 5%;
+  min-height: 5%;
+  padding-bottom: 1px;
+  border-radius: 10px 10px 0 0;
+}
+
+.resizer-handle-x {
+  cursor: col-resize;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 90%;
+  width: 10px;
+  margin-left: 10px;
+  margin-right: 10px;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.resizer-handle-y {
+  cursor: row-resize;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 10px;
+  width: 90%;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.appheader-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* Moved from colorStyles.css */
+.color-selectable {
+  color: black;
+}
+
+.color-unselectable {
+  color: rgb(110, 110, 110);
+}
+
+.color-background-paper {
+  background-color: white;
+}
+
+/* Moved from initVisPopupStyles.css */
+.initVis-plusButton {
+  display: flex;
+  flex-direction: column;
+}
+
+.initVis-popup {
+  width: 50%;
+  height: 70%;
+  background-color: white;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+}
+
+.initVis-title {
+  text-align: center;
+  user-select: none;
+}
+
+.initVis-dropdown {
+  width: 40%;
+  margin-top: auto;
+  margin-bottom: auto;
+  min-width: 40%;
+}
+
+.initVis-bigButton {
+  width: 90%;
+  margin-top: auto;
+  margin-bottom: 2.5%;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  user-select: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.initVis-entry {
+  width: 80%;
+  padding-left: 10%;
+  padding-right: 10%;
+  user-select: none;
+  display: flex;
+  align-items: center;
+}
+
+.initVis-entry-text {
+  width: 50%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  user-select: none;
+}
+
+.initVis-entrySwap {
+  width: 10%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  text-align: left;
+  user-select: none;
+  cursor: pointer;
+}
+
+/* Moved from gridStyles.css */
+.reorderable-row-drag-indicator {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  font-size: 40px;
+}
+
+.reorderable-row {
+  width: 100%;
+  max-height: 95%;
+  min-height: 5%;
+  overflow: hidden;
+}
+
+.app-header {
+  background-color: rgb(250, 250, 250);
+  height: 5%;
+  display: flex;
+  align-items: center;
+  justify-content: left;
+  font-size: 50px;
+  padding-left: 1%;
+  user-select: none;
+  font-weight: bold;
+}
+
+.app-header {
+  height: var(--app-header-height);
+  display: flex;
+  align-items: center;
+  padding: var(--app-header-padding);
+  background-color: var(--paper-color);
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000; /* Ensure it stays on top of other elements */
+}
+
+.app-header img {
+  height: 100%;
+  margin-right: 10px;
+}
+
+.app-header img[ondragstart] {
+  user-drag: none;
+}
+
+#top {
+  background-color: var(--paper-color);
+}
+
+#titlePanel {
+  display: flex;
+  align-items: center;
+  height: 100%; /* Ensure titlePanel height matches app-header */
+  width: 70%;
+  font-family: var(--title-font-family);
+  font-size: var(--title-font-size);
+  font-weight: var(--title-font-weight);
+  color: var(--title-color);
+}
+
+#buttonPanel {
+  display: none !important; /* Hide button panel for demo purposes */
+  height: var(--app-header-height);
+  width: 30%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding-right: var(--button-panel-padding-right);
+}
+
+.legend {
+  position: sticky;
+  top: 0;
+  margin-top: 10px;
+  margin: 10px;
+  background-color: white;
+  padding: 5px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.legend-color {
+  width: 18px;
+  height: 18px;
+  margin-right: 5px;
+}
+
+.viewport {
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+}
+
+.uiBigColumn {
+  /* Add any specific styles for uiBigColumn if needed */
+  padding: 20px 20px 20px 20px;
+}

@@ -105,7 +105,7 @@ export class NLHighlightingVisualization extends HighlightingVisualization {
     item.style.color = color;
     item.scrollIntoView({
       behavior: "smooth",
-      block: "center",
+      block: "nearest",
       inline: "nearest",
     });
   }

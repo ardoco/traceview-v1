@@ -9,6 +9,7 @@ import {
   VisualizationFactory,
   VisualizationType,
 } from "./artifactVisualizations/visFactory";
+import "./styles/main.css";
 
 const STYLE = Style.ARDOCO;
 
@@ -36,22 +37,19 @@ export async function load(url: string): Promise<string> {
  */
 function writeTitle(titlePanel: HTMLElement) {
   const title = "ArDoCo Trace View";
-  const bigger = 50;
-  const smaller = 30;
-  const fontSizes = "ArDoCo T"
-    .split("")
-    .map((c) => bigger)
-    .concat("race ".split("").map((c) => smaller))
-    .concat(bigger)
-    .concat("iew".split("").map((c) => smaller));
-  for (let i = 0; i < title.length; i++) {
-    const letterDiv = document.createElement("span");
-    letterDiv.appendChild(document.createTextNode(title[i]));
-    letterDiv.style.color = Style.ARDOCO.getHeaderColor();
-    letterDiv.style.marginRight = "0px";
-    letterDiv.style.fontSize = fontSizes[i] + "px";
-    titlePanel.appendChild(letterDiv);
-  }
+  const titleSpan = document.createElement("span");
+
+  const ardocoSpan = document.createElement("span");
+  ardocoSpan.innerHTML = "ArDoCo";
+  ardocoSpan.style.fontWeight = "bold";
+  ardocoSpan.style.color = STYLE.getArdocoColor();
+
+  const traceViewSpan = document.createElement("span");
+  traceViewSpan.innerHTML = " Trace View";
+
+  titleSpan.appendChild(ardocoSpan);
+  titleSpan.appendChild(traceViewSpan);
+  titlePanel.appendChild(titleSpan);
 }
 
 /**
@@ -66,26 +64,17 @@ function initUI() {
   head.appendChild(link);
 
   const top = document.getElementById("top")!;
-  top.style.height = "60px";
   top.classList.add("app-header");
   const img = document.createElement("img");
   img.src = "https://ardoco.de/assets/img/logo.png";
-  img.style.height = "100%";
-  img.style.marginRight = "10px";
   img.ondragstart = () => false;
   top.appendChild(img);
   const titlePanel = document.createElement("div");
+  titlePanel.id = "titlePanel";
   const buttonPanel = document.createElement("div");
+  buttonPanel.id = "buttonPanel";
   top.appendChild(titlePanel);
   top.appendChild(buttonPanel);
-  titlePanel.style.height = "100%";
-  titlePanel.style.width = "70%";
-  buttonPanel.style.height = "100%";
-  buttonPanel.style.width = "30%";
-  buttonPanel.style.display = "flex";
-  buttonPanel.style.justifyContent = "flex-end";
-  buttonPanel.style.paddingRight = "80px";
-  top.style.backgroundColor = STYLE.getPaperColor();
   writeTitle(titlePanel);
   const fileManager = new FileManager();
   fabricateFileManagerPanelButton(buttonPanel, fileManager, STYLE);
@@ -110,7 +99,6 @@ async function init(fileManager: FileManager) {
   });
   const middle = document.getElementById("middle")!;
   middle.style.backgroundColor = STYLE.getBackgroundColor();
-  middle.style.height = "95%";
   const urlPrefix =
     "https://raw.githubusercontent.com/ArDoCo/Benchmark/main/teastore/";
   function truncateId(id: string): string {
@@ -141,10 +129,6 @@ async function init(fileManager: FileManager) {
   fileManager.addTextFile(
     "codeModel.acm",
     await load(urlPrefix + "model_2022/code/codeModel.acm"),
-  );
-  fileManager.addTextFile(
-    "diagramData.json",
-    await load(urlPrefix + "goldstandards/goldstandard_sad_id_2018.json"),
   );
   const totalTraceLinks = [
     parseTraceLinksFromCSV(fileManager.getContent("umlToNL.txt")).map(
@@ -202,21 +186,6 @@ async function init(fileManager: FileManager) {
     0.6 * buttonPanel.getBoundingClientRect().height,
     STYLE,
   );
-  const availableStylesNames = ["ArDoCo", "Dark", "Light"];
-  const availableStyleActions = [Style.ARDOCO, Style.NIGHT, Style.DEFAULT].map(
-    (style) => () => {
-      middle.style.backgroundColor = style.getBackgroundColor();
-      app.setStyle(style);
-    },
-  );
-  const changeStyleButton = UIFactory.fabricatePageHeaderDropdownButton(
-    ["🎨"],
-    availableStylesNames,
-    availableStyleActions,
-    0.6 * buttonPanel.getBoundingClientRect().height,
-    STYLE,
-  );
-  buttonPanel.insertBefore(changeStyleButton, buttonPanel.firstChild);
   buttonPanel.insertBefore(addVisButton, buttonPanel.firstChild);
 }
 

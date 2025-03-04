@@ -118,6 +118,80 @@ export class CodeModelTreeVisualization extends SVGBasedHighlightingVisualizatio
       )
       .attr("font-size", (d: any) => this.getNodeStyle(d.data).fontSize)
       .style("user-select", "none");
+
+    // Add zoom and pan functionality
+    const zoom = d3
+      .zoom()
+      .scaleExtent([0.5, 5]) // Constrain zoom level
+      .on("zoom", (event) => {
+        this.plot.attr("transform", event.transform);
+      });
+
+    d3.select(viewport as any)
+      .call(zoom as any)
+      .on("dblclick.zoom", null) // Disable double-click zoom
+      .on("wheel.zoom", (event) => {
+        if (event.ctrlKey || event.metaKey) {
+          d3.select(viewport as any).call(zoom as any);
+        }
+      })
+      .on("mousedown.zoom", (event) => {
+        if (event.button === 1) {
+          // Middle mouse button
+          d3.select(viewport as any).call(zoom as any);
+        }
+      });
+
+    // Add tooltips
+    const tooltip = d3
+      .select("body")
+      .append("div")
+      .attr("class", "tooltip")
+      .style("position", "absolute")
+      .style("visibility", "hidden")
+      .style("background-color", "white")
+      .style("border", "1px solid black")
+      .style("padding", "5px");
+
+    this.plot
+      .selectAll(".node")
+      .on("mouseover", (event, d: any) => {
+        tooltip.style("visibility", "visible").text(this.getName(d.id));
+      })
+      .on("mousemove", (event) => {
+        tooltip
+          .style("top", event.pageY - 10 + "px")
+          .style("left", event.pageX + 10 + "px");
+      })
+      .on("mouseout", () => {
+        tooltip.style("visibility", "hidden");
+      });
+
+    // Add legend as a separate HTML element within the "split-vis-half-container" element
+    const legendData = [
+      { color: style.getSelectableTextColor(), label: "Highlightable" },
+      { color: style.getNotSelectableTextColor(), label: "Not Highlightable" },
+    ];
+
+    const legend = document.createElement("div");
+    legend.className = "legend";
+    legendData.forEach((item) => {
+      const legendItem = document.createElement("div");
+      legendItem.className = "legend-item";
+      legendItem.innerHTML = `<div class="legend-color" style="background-color: ${item.color};"></div><span>${item.label}</span>`;
+      legend.appendChild(legendItem);
+    });
+    const container = viewport.closest(
+      ".split-vis-half-container",
+    ) as HTMLElement;
+    if (container) {
+      container.style.position = "relative"; // Ensure the container is positioned relative
+      if (container.firstChild && container.firstChild.nextSibling) {
+        container.insertBefore(legend, container.firstChild.nextSibling); // Insert legend below the header
+      } else {
+        container.appendChild(legend); // Fallback if no header is found
+      }
+    }
   }
 
   protected highlightElement(id: string, color: string): void {
