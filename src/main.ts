@@ -38,7 +38,17 @@ export async function load(url: string): Promise<string> {
 function writeTitle(titlePanel: HTMLElement) {
   const title = "ArDoCo Trace View";
   const titleSpan = document.createElement("span");
-  titleSpan.textContent = title;
+
+  const ardocoSpan = document.createElement("span");
+  ardocoSpan.innerHTML = "ArDoCo";
+  ardocoSpan.style.fontWeight = "bold";
+  ardocoSpan.style.color = STYLE.getArdocoColor();
+
+  const traceViewSpan = document.createElement("span");
+  traceViewSpan.innerHTML = " Trace View";
+
+  titleSpan.appendChild(ardocoSpan);
+  titleSpan.appendChild(traceViewSpan);
   titlePanel.appendChild(titleSpan);
 }
 

@@ -28,10 +28,11 @@
 
   --app-header-height: 80px;
   --app-header-padding: 0 20px;
-  --title-font-size: 1.5em;
-  --title-font-family: 'Arial', sans-serif;
-  --title-font-weight: bold;
-  --title-color: rgb(57, 119, 147); /* ArDoCo blue */
+  --title-font-size: 1em;
+  --title-font-family: 'Roboto', 'normal';
+  --title-font-weight: 400; /* Use a medium weight for a less lean look */
+  --title-color: rgb(42, 42, 42);
+  --ardoco-color: rgb(57, 119, 147);
   --button-panel-padding-right: 80px;
 }
 
@@ -349,6 +350,7 @@ html {
   width: 70%;
   font-family: var(--title-font-family);
   font-size: var(--title-font-size);
+  font-weight: var(--title-font-weight);
   color: var(--title-color);
 }
 

@@ -93,6 +93,7 @@ export class ButtonStyle {
  */
 export class Style {
   public static readonly ARDOCO = new Style(
+    "var(--ardoco-color)",
     "var(--ardoco-selectable-text-color)",
     "var(--ardoco-not-selectable-text-color)",
     "var(--ardoco-background-color)",
@@ -106,6 +107,7 @@ export class Style {
     },
   );
 
+  protected ardocoColor: string;
   protected selectableText: string;
   protected notSelectableText: string;
   protected background: string;
@@ -115,6 +117,7 @@ export class Style {
   protected buttonStyle: ButtonStyle;
 
   protected constructor(
+    ardocoColor: string,
     selectableText: string,
     notSelectableText: string,
     background: string,
@@ -123,6 +126,7 @@ export class Style {
     borderColor: string,
     buttonStyle: ProtoButtonStyle,
   ) {
+    this.ardocoColor = ardocoColor;
     this.selectableText = selectableText;
     this.notSelectableText = notSelectableText;
     this.background = background;
@@ -136,6 +140,10 @@ export class Style {
       this.selectableText,
       this.borderColor,
     );
+  }
+
+  public getArdocoColor(): string {
+    return this.ardocoColor;
   }
 
   /**
