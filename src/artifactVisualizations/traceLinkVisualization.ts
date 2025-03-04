@@ -43,6 +43,7 @@ export class TraceLinkVisualization
   private redraw(): void {
     this.viewport.innerHTML = "";
     this.viewport.classList.add("uiBigColumn");
+    this.viewport.style.padding = "0";
     this.viewport.style.alignItems = "start";
     const linksToAdd = this.lastReportedState.map((state) => state);
     let fontSize = this.maxFontSize;
