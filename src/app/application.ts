@@ -130,7 +130,7 @@ export class Application implements StyleableUIElement {
   public addVisualizationFromData(type: VisualizationType, data: string[]) {
     this.addVisualizationPanel(
       this.visualizationFactory.getTypeName(type),
-      700,
+      600,
       this.visualizationFactory.fabricateVisualization(type, data, this.style),
     );
   }
