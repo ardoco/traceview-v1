@@ -169,18 +169,10 @@ export class CodeModelTreeVisualization extends SVGBasedHighlightingVisualizatio
 
     const legend = document.createElement("div");
     legend.className = "legend";
-    legend.style.position = "relative"; // Changed from absolute to relative
-    legend.style.marginTop = "10px"; // Add margin to separate from header
-    legend.style.margin = "10px"; // Add small margin around the legend box
-    legend.style.backgroundColor = "white";
-    legend.style.border = "1px solid black";
-    legend.style.padding = "5px";
     legendData.forEach(item => {
       const legendItem = document.createElement("div");
-      legendItem.style.display = "flex";
-      legendItem.style.alignItems = "center";
-      legendItem.style.marginBottom = "5px";
-      legendItem.innerHTML = `<div style="width: 18px; height: 18px; background-color: ${item.color}; margin-right: 5px;"></div><span>${item.label}</span>`;
+      legendItem.className = "legend-item";
+      legendItem.innerHTML = `<div class="legend-color" style="background-color: ${item.color};"></div><span>${item.label}</span>`;
       legend.appendChild(legendItem);
     });
     const container = viewport.closest(".split-vis-half-container") as HTMLElement;
