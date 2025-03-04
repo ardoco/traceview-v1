@@ -12,18 +12,18 @@ export class CountingColorSupplier implements ColorSupplier {
   private colorPool: string[];
   private numColorsInUse: number;
 
-  constructor(maxColors: number) {
+  constructor() {
     this.colorIsInUse = new Map<string, string>();
-    const sortedColorPool = [];
-    const rotation = 360 / maxColors;
-    for (let i = 0; i < maxColors; i++) {
-      sortedColorPool.push("hsl(" + i * rotation + ",100%,50%)");
-    }
-    this.colorPool = [];
-    while (sortedColorPool.length > 0) {
-      const index = Math.floor(Math.random() * sortedColorPool.length);
-      this.colorPool.push(sortedColorPool.splice(index, 1)[0]);
-    }
+    this.colorPool = [
+      "rgb(0, 150, 130)",    // kit-green
+      "rgb(70, 100, 170)",   // kit-blue
+      "rgb(162, 34, 35)",    // kit-red
+      "rgb(223, 155, 27)",   // kit-orange
+      "rgb(140, 182, 60)",   // kit-lightgreen
+      "rgb(163, 16, 124)",   // kit-purple
+      "rgb(167, 130, 46)",   // kit-brown
+      "rgb(35, 161, 224)"    // kit-cyan
+    ];
     this.numColorsInUse = 0;
   }
 
@@ -36,10 +36,7 @@ export class CountingColorSupplier implements ColorSupplier {
     if (this.colorIsInUse.has(id)) {
       return this.colorIsInUse.get(id)!;
     }
-    if (this.numColorsInUse == this.colorPool.length) {
-      throw new Error("No colors left!");
-    }
-    const color = this.colorPool[this.numColorsInUse];
+    const color = this.colorPool[this.numColorsInUse % this.colorPool.length];
     this.colorIsInUse.set(id, color);
     this.numColorsInUse++;
     return color;

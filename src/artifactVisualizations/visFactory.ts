@@ -18,8 +18,8 @@ export enum VisualizationType {
  * An object of this class if passed to the application on creation and this object will define which visualization types are supported.
  */
 export class VisualizationFactory {
-  protected static readonly NLVIS_TITLE = "SW Architecture Documentation";
-  protected static readonly UMLVIS_TITLE = "UML";
+  protected static readonly NLVIS_TITLE = "Architecture Documentation";
+  protected static readonly UMLVIS_TITLE = "UML Component Diagram";
   protected static readonly CODEVIS_TITLE = "Code Model";
 
   /**

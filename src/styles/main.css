@@ -21,17 +21,17 @@
 
   --ardoco-selectable-text-color: black;
   --ardoco-not-selectable-text-color: rgb(110, 110, 110);
-  --ardoco-background-color: rgb(57, 119, 147);
+  --ardoco-background-color: rgb(175, 175, 175);
   --ardoco-paper-color: white;
-  --ardoco-header-color: rgb(145, 189, 224);
+  --ardoco-header-color: rgb(calc(0.4*255 + 0.6*255), calc(0.4*255 + 0.6*155), calc(0.4*255 + 0.6*27));
   --ardoco-border-color: black;
   --ardoco-button-background-color: rgb(249, 241, 220);
   --ardoco-button-hover-background-color: rgb(220, 220, 220);
   --ardoco-button-down-background-color: rgb(150, 150, 150);
 
   --app-header-height: 80px;
-  --app-header-padding: 0 10px;
-  --title-font-size: 2em;
+  --app-header-padding: 0 20px;
+  --title-font-size: 1.5em;
   --title-font-family: 'Arial', sans-serif;
   --title-font-weight: bold;
   --title-color: rgb(57, 119, 147); /* ArDoCo blue */
@@ -318,7 +318,6 @@ html {
   padding-left: 1%;
   user-select: none;
   font-weight: bold;
-  text-shadow: 1px 1px 1px #000000;
 }
 
 .app-header {
@@ -352,12 +351,12 @@ html {
   height: 100%; /* Ensure titlePanel height matches app-header */
   width: 70%;
   font-family: var(--title-font-family);
-  font-weight: var(--title-font-weight);
   font-size: var(--title-font-size);
   color: var(--title-color);
 }
 
 #buttonPanel {
+  display: none !important; /* Hide button panel for demo purposes */
   height: var(--app-header-height);
   width: 30%;
   display: flex;

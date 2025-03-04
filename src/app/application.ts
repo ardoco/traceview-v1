@@ -65,7 +65,7 @@ export class Application implements StyleableUIElement {
     parent.classList.add("uiBigColumn");
     parent.appendChild(viewport);
     this.grid = new ReorderableGrid(viewport, style);
-    this.mediator = new VisualizationObserver(new CountingColorSupplier(30));
+    this.mediator = new VisualizationObserver(new CountingColorSupplier());
     const removeVisualization = (id: number): void => {
       this.removeVisualization(id);
     };
