@@ -186,11 +186,8 @@ export class CodeModelTreeVisualization extends SVGBasedHighlightingVisualizatio
     ) as HTMLElement;
     if (container) {
       container.style.position = "relative"; // Ensure the container is positioned relative
-      if (container.firstChild && container.firstChild.nextSibling) {
-        container.insertBefore(legend, container.firstChild.nextSibling); // Insert legend below the header
-      } else {
-        container.appendChild(legend); // Fallback if no header is found
-      }
+      legend.classList.add("legend"); // Add the legend class for styling
+      container.appendChild(legend); // Append legend to container
     }
   }
 
