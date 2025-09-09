@@ -1,3 +1,5 @@
+⚠️ **This Repository has a successor: https://github.com/ardoco/traceview-v2** ⚠️
+
 # Traceability Link Visualization
 
 Welcome to the repository for ArDoCo TraceView. TraceView is intended to visualize artifacts at different levels of abstraction during the software development process and the "implements" relationship between them called a traceability link (TL).
